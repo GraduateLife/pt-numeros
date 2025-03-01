@@ -29,10 +29,8 @@ export default function GamePlayingScreen({
   emitGameEnd,
 }: GamePlayingScreenProps) {
   const [userInput, setUserInput] = useState("");
-  console.log(givenSeconds);
 
   const checkAnswer = useCallback(() => {
-    console.log("user answer", userInput);
     if (isAnswerCorrect(userInput, currentNumber)) {
       emitAnswerSignal(true);
     } else {
