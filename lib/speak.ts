@@ -3,6 +3,8 @@ export const speak = (str: string) => {
     const utterance = new SpeechSynthesisUtterance(str);
     utterance.lang = "pt-PT";
     speechSynthesis.speak(utterance);
-    console.log("speakNumber", str);
+    if (process.env.NODE_ENV === "development") {
+      console.log("speakNumber", str);
+    }
   }
 };
