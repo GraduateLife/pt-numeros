@@ -1,18 +1,31 @@
-import { Anvil, Play, RefreshCw } from "lucide-react";
+import { Anvil, Pencil, Timer } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface GameWaitingToStartScreenProps {
-  onStart: () => void;
+  emitStartSignal: (mode: "one-by-one" | "till-crash" | "timed") => void;
 }
 
 export default function GameWaitingToStartScreen({
-  onStart,
+  emitStartSignal,
 }: GameWaitingToStartScreenProps) {
   return (
     <div className="space-y-4">
-      <Button onClick={onStart} className="w-full">
+      <div className="flex gap-2">
+        <Button
+          className="flex-1"
+          onClick={() => emitStartSignal("one-by-one")}
+        >
+          <Pencil className="mr-2" />
+          练习一题
+        </Button>
+      </div>
+      <Button onClick={() => emitStartSignal("till-crash")} className="w-full">
         <Anvil className="mr-2" />
-        开始练习
+        Rush 模式
+      </Button>
+      <Button onClick={() => emitStartSignal("timed")} className="w-full">
+        <Timer className="mr-2" />
+        限时练习
       </Button>
     </div>
   );

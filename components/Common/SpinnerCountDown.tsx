@@ -1,13 +1,13 @@
 "use client";
-import { useEffect, useReducer, useState } from "react";
-import { motion, animate } from "framer-motion";
+import { formatDuration, intervalToDuration } from "date-fns";
+import { animate, motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface SpinnerCountdownProps {
   duration: number; // Countdown duration in seconds
   size?: number; // Spinner size
   strokeWidth?: number; // Circle stroke width
   onComplete: () => void; // Callback when countdown finishes
-  reset?: boolean; // Reset the countdown
 }
 
 export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
@@ -15,19 +15,12 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
   size = 100,
   strokeWidth = 8,
   onComplete,
-  reset = false,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const [progress, setProgress] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    if (reset) {
-      setProgress(1);
-    }
-    if (isPaused) return;
-
     const controls = animate(1, 0, {
       duration,
       ease: "linear",
@@ -38,7 +31,7 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
     });
 
     return () => controls.stop();
-  }, [duration, isPaused]);
+  }, [duration]);
 
   return (
     <div className="relative flex items-center justify-center">
@@ -69,7 +62,20 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
 
       {/* Time Display */}
       <span className="absolute text-lg font-bold select-none">
-        {(progress * duration).toFixed(1)}
+        {duration > 60
+          ? formatDuration(
+              intervalToDuration({
+                start: 0,
+                end: Math.round(progress * duration) * 1000,
+              }),
+              { format: ["minutes", "seconds"], zero: true, delimiter: ":" },
+            )
+              .replace(/ minutes?/g, "")
+              .replace(/ seconds?/g, "")
+              .replace(/\s/g, ":")
+              .replace(/^(\d+)$/, "$1:00") // Add :00 if only minutes are shown
+              .replace(/:(\d)$/, ":0$1") // Add leading zero to single-digit seconds
+          : (progress * duration).toFixed(1)}
       </span>
 
       {/* Pause/Resume Button */}

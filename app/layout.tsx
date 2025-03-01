@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +29,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <footer className="fixed bottom-[10] left-0 right-0 text-center text-sm text-gray-500">
+          <span className="font-bold mr-1">2025 Made by</span>
+          <span className="font-bold text-blue-400 hover:text-blue-500 mr-1">
+            <a href="https://iameddie.work" target="_blank">
+              @Eddie
+            </a>
+          </span>
+          <span className="font-bold mr-1">with curiosity</span>
+        </footer>
+        <Toaster position="top-center" />
       </body>
     </html>
   );
