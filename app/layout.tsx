@@ -1,3 +1,4 @@
+import { Wrapper } from "@/components/Common/Wrapper";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
@@ -28,8 +29,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <footer className="fixed bottom-[10] left-0 right-0 text-center text-sm text-gray-500">
+        <Wrapper>{children}</Wrapper>
+        <footer className="fixed bottom-0 left-0 right-0 text-center text-sm text-gray-500">
           <span className="font-bold mr-1">2025 Made by</span>
           <span className="font-bold text-blue-400 hover:text-blue-500 mr-1">
             <a href="https://iameddie.work" target="_blank">

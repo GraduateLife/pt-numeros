@@ -1,10 +1,5 @@
-// ... existing code ...
-
-import { Label } from "@radix-ui/react-label";
-import { Settings } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "../ui/button";
+import { settingsStorage } from "@/app/storage/settings";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,82 +8,240 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import { Input } from "../ui/input";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Switch } from "../ui/switch";
 
-interface GameSettingsDialogProps {
-  title: string;
-  description: string;
-  storageKey: string;
-  defaultValue?: number;
-  label: string;
-  unit?: string;
-  onSettingsSaved?: (value: number) => void;
+export interface GameSettings {
+  general: {
+    minNumber: number;
+    maxNumber: number;
+    defaultInstantCheckMode: boolean;
+  };
+  oneByOne: {
+    timeLimit: number;
+  };
+  tillCrash: {
+    timePerQuestion: number;
+    lives: number;
+  };
+  timed: {
+    timeLimit: number;
+  };
 }
 
-const GameSettingsDialog = ({
-  title,
-  description,
-  storageKey,
-  defaultValue = 10,
-  label,
-  unit,
-  onSettingsSaved,
-}: GameSettingsDialogProps) => {
-  const [value, setValue] = useState(
-    Number(localStorage.getItem(storageKey)) || defaultValue,
-  );
+interface GameSettingsDialogProps {
+  settings: GameSettings;
+  onSettingsChange: (settings: GameSettings) => void;
+}
 
-  const handleSubmit = () => {
-    localStorage.setItem(storageKey, value.toString());
-    onSettingsSaved?.(value);
-    toast.success("设置完成");
+export default function GameSettingsDialog({
+  settings: defaultSettings,
+  onSettingsChange,
+}: GameSettingsDialogProps) {
+  const [tempSettings, setTempSettings] =
+    useState<GameSettings>(defaultSettings);
+  const [open, setOpen] = useState(false);
+
+  const updateSettings = (
+    category: keyof GameSettings,
+    field: string,
+    value: number | boolean,
+    constraints?: { min: number; max: number },
+  ) => {
+    const clampedValue = constraints
+      ? typeof value === "number"
+        ? Math.max(constraints.min, Math.min(constraints.max, value))
+        : value
+      : value;
+
+    setTempSettings((prev) => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: clampedValue,
+      },
+    }));
+  };
+
+  const handleConfirm = () => {
+    onSettingsChange(tempSettings);
+    setOpen(false);
+    toast.success("设置已保存");
   };
 
   return (
-    <Dialog>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (isOpen) {
+          setTempSettings(defaultSettings);
+        }
+      }}
+    >
       <DialogTrigger asChild>
-        <Button size="icon" variant="outline">
-          <Settings />
+        <Button variant="outline" className="mr-4">
+          设置
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="min-w-[450px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>游戏设置</DialogTitle>
         </DialogHeader>
-        <DialogDescription>{description}</DialogDescription>
-        <div className="flex items-center justify-center space-x-2">
-          <Label htmlFor="setting-value" className="min-w-20">
-            {label}
-          </Label>
-          <Input
-            autoFocus
-            type="number"
-            id="setting-value"
-            value={value}
-            onChange={(e) => setValue(Number(e.target.value))}
-          />
-          {unit && <span>{unit}</span>}
-        </div>
+        <DialogDescription>
+          请根据需要调整游戏设置，然后点击确认按钮保存设置。
+        </DialogDescription>
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general">通用设置</TabsTrigger>
+            <TabsTrigger value="oneByOne">单题模式</TabsTrigger>
+            <TabsTrigger value="tillCrash">连续模式</TabsTrigger>
+            <TabsTrigger value="timed">计时模式</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general" className="space-y-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label>最小数字</label>
+              <Input
+                type="number"
+                min={0}
+                max={999}
+                value={tempSettings.general.minNumber}
+                onChange={(e) =>
+                  updateSettings(
+                    "general",
+                    "minNumber",
+                    Number(e.target.value),
+                    { min: 0, max: 999 },
+                  )
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label>最大数字</label>
+              <Input
+                type="number"
+                min={0}
+                max={999}
+                value={tempSettings.general.maxNumber}
+                onChange={(e) =>
+                  updateSettings(
+                    "general",
+                    "maxNumber",
+                    Number(e.target.value),
+                    { min: 0, max: 999 },
+                  )
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label>默认开启输完即验</label>
+              <Switch
+                checked={tempSettings.general.defaultInstantCheckMode}
+                onCheckedChange={(checked) =>
+                  updateSettings("general", "defaultInstantCheckMode", checked)
+                }
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="oneByOne" className="space-y-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label>时间限制 (秒)</label>
+              <Input
+                type="number"
+                min={1}
+                max={3600}
+                value={tempSettings.oneByOne.timeLimit}
+                onChange={(e) =>
+                  updateSettings(
+                    "oneByOne",
+                    "timeLimit",
+                    Number(e.target.value),
+                    { min: 1, max: 3600 },
+                  )
+                }
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tillCrash" className="space-y-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label>每题时间 (秒)</label>
+              <Input
+                type="number"
+                min={1}
+                max={300}
+                value={tempSettings.tillCrash.timePerQuestion}
+                onChange={(e) =>
+                  updateSettings(
+                    "tillCrash",
+                    "timePerQuestion",
+                    Number(e.target.value),
+                    { min: 1, max: 300 },
+                  )
+                }
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label>生命值</label>
+              <Input
+                type="number"
+                min={1}
+                max={10}
+                value={tempSettings.tillCrash.lives}
+                onChange={(e) =>
+                  updateSettings("tillCrash", "lives", Number(e.target.value), {
+                    min: 1,
+                    max: 10,
+                  })
+                }
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="timed" className="space-y-4 py-4">
+            <div className="flex flex-col gap-2">
+              <label>时间限制 (秒)</label>
+              <Input
+                type="number"
+                min={1}
+                max={3600}
+                value={tempSettings.timed.timeLimit}
+                onChange={(e) =>
+                  updateSettings("timed", "timeLimit", Number(e.target.value), {
+                    min: 1,
+                    max: 3600,
+                  })
+                }
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
         <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            确认设置
-          </Button>
+          <div className="flex justify-between w-full">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              取消
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                settingsStorage.clearSettings();
+                setOpen(false);
+                toast.success("设置已重置");
+                window.location.reload();
+              }}
+            >
+              重置
+            </Button>
+            <Button onClick={handleConfirm}>确认</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
-
-// Replace PracticeOneByOneDialog with this usage:
-export const PracticeOneByOneDialog = () => (
-  <GameSettingsDialog
-    title="练习一题"
-    description="先来一题试试手吧"
-    storageKey="answer-time-one-by-one"
-    label="解答时长"
-    unit="秒"
-  />
-);
-
-// ... existing code ...
+}
