@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { speak } from "@/lib/speak";
 import { isAnswerCorrect } from "@/lib/utils";
 import { Volume2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const calculateCorrectRate = () => {
   const history = historyStorage.getHistory();
@@ -24,7 +24,6 @@ const calculateCorrectRate = () => {
 };
 
 export default function GameEndPage() {
-  const { mode } = useParams() as { mode: string };
   const router = useRouter();
   const history = historyStorage.getHistory();
 

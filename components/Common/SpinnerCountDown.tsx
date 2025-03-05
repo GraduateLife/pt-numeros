@@ -27,11 +27,11 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
       onUpdate: (v) => {
         setProgress(v);
       },
-      onComplete: () => onComplete(),
+      onComplete,
     });
 
     return () => controls.stop();
-  }, [duration]);
+  }, [duration, onComplete]);
 
   return (
     <div className="relative flex items-center justify-center">

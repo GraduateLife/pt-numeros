@@ -51,7 +51,7 @@ export default function GamePanel() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["question"],
+    queryKey: ["question", minNumber, maxNumber],
     queryFn: () => getQuestion(minNumber, maxNumber),
     staleTime: 0,
     gcTime: 0,
@@ -127,7 +127,7 @@ export default function GamePanel() {
     if (instantCheckMode && userInput.length === 3) {
       handleCheckAnswer();
     }
-  }, [userInput, instantCheckMode]);
+  }, [userInput, instantCheckMode, handleCheckAnswer]);
 
   if (isLoading) {
     return <div>Loading...</div>;
