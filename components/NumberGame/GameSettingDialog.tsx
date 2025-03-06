@@ -1,4 +1,3 @@
-import { settingsStorage } from "@/app/storage/settings";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,10 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Settings } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-
 export interface GameSettings {
   general: {
     minNumber: number;
@@ -36,11 +36,13 @@ export interface GameSettings {
 interface GameSettingsDialogProps {
   settings: GameSettings;
   onSettingsChange: (settings: GameSettings) => void;
+  onSettingsReset: () => void;
 }
 
 export default function GameSettingsDialog({
   settings: defaultSettings,
   onSettingsChange,
+  onSettingsReset,
 }: GameSettingsDialogProps) {
   const [tempSettings, setTempSettings] =
     useState<GameSettings>(defaultSettings);
@@ -73,19 +75,25 @@ export default function GameSettingsDialog({
     toast.success("设置已保存");
   };
 
+  const handleReset = () => {
+    onSettingsReset();
+    toast.success("设置已重置");
+    setOpen(false);
+  };
+
   return (
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
         setOpen(isOpen);
         if (isOpen) {
-          setTempSettings(defaultSettings);
+          setTempSettings({ ...defaultSettings });
         }
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" className="mr-4">
-          设置
+        <Button variant="outline" size="icon" className="mr-4">
+          <Settings />
         </Button>
       </DialogTrigger>
       <DialogContent className="min-w-[450px]">
@@ -105,8 +113,9 @@ export default function GameSettingsDialog({
 
           <TabsContent value="general" className="space-y-4 py-4">
             <div className="flex flex-col gap-2">
-              <label>最小数字</label>
+              <Label htmlFor="min-number">最小数字</Label>
               <Input
+                id="min-number"
                 type="number"
                 min={0}
                 max={999}
@@ -122,8 +131,9 @@ export default function GameSettingsDialog({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label>最大数字</label>
+              <Label htmlFor="max-number">最大数字</Label>
               <Input
+                id="max-number"
                 type="number"
                 min={0}
                 max={999}
@@ -139,8 +149,11 @@ export default function GameSettingsDialog({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label>默认开启输完即验</label>
+              <Label htmlFor="default-instant-check-mode">
+                默认开启输完即验
+              </Label>
               <Switch
+                id="default-instant-check-mode"
                 checked={tempSettings.general.defaultInstantCheckMode}
                 onCheckedChange={(checked) =>
                   updateSettings("general", "defaultInstantCheckMode", checked)
@@ -151,8 +164,9 @@ export default function GameSettingsDialog({
 
           <TabsContent value="oneByOne" className="space-y-4 py-4">
             <div className="flex flex-col gap-2">
-              <label>时间限制 (秒)</label>
+              <Label htmlFor="one-by-one-time-limit">时间限制 (秒)</Label>
               <Input
+                id="one-by-one-time-limit"
                 type="number"
                 min={1}
                 max={3600}
@@ -171,8 +185,11 @@ export default function GameSettingsDialog({
 
           <TabsContent value="tillCrash" className="space-y-4 py-4">
             <div className="flex flex-col gap-2">
-              <label>每题时间 (秒)</label>
+              <Label htmlFor="till-crash-time-per-question">
+                每题时间 (秒)
+              </Label>
               <Input
+                id="till-crash-time-per-question"
                 type="number"
                 min={1}
                 max={300}
@@ -188,8 +205,9 @@ export default function GameSettingsDialog({
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label>生命值</label>
+              <Label htmlFor="till-crash-lives">生命值</Label>
               <Input
+                id="till-crash-lives"
                 type="number"
                 min={1}
                 max={10}
@@ -206,8 +224,9 @@ export default function GameSettingsDialog({
 
           <TabsContent value="timed" className="space-y-4 py-4">
             <div className="flex flex-col gap-2">
-              <label>时间限制 (秒)</label>
+              <Label htmlFor="timed-time-limit">时间限制 (秒)</Label>
               <Input
+                id="timed-time-limit"
                 type="number"
                 min={1}
                 max={3600}
@@ -227,15 +246,7 @@ export default function GameSettingsDialog({
             <Button variant="outline" onClick={() => setOpen(false)}>
               取消
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                settingsStorage.clearSettings();
-                setOpen(false);
-                toast.success("设置已重置");
-                window.location.reload();
-              }}
-            >
+            <Button variant="outline" onClick={handleReset}>
               重置
             </Button>
             <Button onClick={handleConfirm}>确认</Button>
