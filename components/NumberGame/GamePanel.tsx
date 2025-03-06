@@ -8,7 +8,7 @@ import { isAnswerCorrect } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Hand, Volume2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DigitInput } from "../Common/DigitInput";
 import SpinnerCountDown from "../Common/SpinnerCountDown";
@@ -58,13 +58,13 @@ export default function GamePanel() {
     refetchOnMount: true,
   });
 
-  const navigateToEndPage = () => {
+  const navigateToEndPage = useCallback(() => {
     router.replace(`/number-game/${mode}/end`);
-  };
+  }, [router, mode]);
 
-  const navigateToNextRound = () => {
+  const navigateToNextRound = useCallback(() => {
     router.replace(`/number-game/${mode}?round=${Number(round) + 1}`);
-  };
+  }, [router, mode, round]);
 
   const handleTimeout = () => {
     if (mode === "till-crash") {
@@ -87,7 +87,8 @@ export default function GamePanel() {
     }
     return normalizedValue;
   };
-  const handleCheckAnswer = () => {
+
+  const handleCheckAnswer = useCallback(() => {
     const validatedInput = validateInput(userInput);
     historyStorage.appendHistory(validatedInput, mode, question!.toString());
 
@@ -121,7 +122,14 @@ export default function GamePanel() {
     } finally {
       setUserInput("");
     }
-  };
+  }, [
+    userInput,
+    mode,
+    question,
+    navigateToEndPage,
+    navigateToNextRound,
+    refetch,
+  ]);
 
   useEffect(() => {
     if (instantCheckMode && userInput.length === 3) {
