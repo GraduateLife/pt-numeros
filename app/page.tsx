@@ -3,7 +3,7 @@ import GameSettingsDialog from "@/components/NumberGame/GameSettingDialog";
 import GameWaitingToStartScreen from "@/components/NumberGame/GameWaitingToStartScreen";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { defaultSettings, settingsStorage } from "./storage/settings";
 
 const buildGameUrl = (mode: string) => {
@@ -25,16 +25,11 @@ const buildGameUrl = (mode: string) => {
 
 export default function NumberGame() {
   const router = useRouter();
-  useEffect(() => {
-    if (settingsStorage.getSettings() === null) {
-      settingsStorage.saveSettings(defaultSettings);
-    }
-  }, []);
   const [settings, setSettings] = useState(settingsStorage.getSettings());
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
-      <Card className="max-w-md mx-auto relative p-6">
+      <Card className="max-w-md mx-auto relative p-6 pt-0">
         <CardHeader>
           <CardTitle className="text-center">葡萄牙语数字专项练习</CardTitle>
         </CardHeader>
@@ -44,6 +39,10 @@ export default function NumberGame() {
             onSettingsChange={(newSettings) => {
               setSettings(newSettings);
               settingsStorage.saveSettings(newSettings);
+            }}
+            onSettingsReset={() => {
+              setSettings(defaultSettings);
+              settingsStorage.clearSettings();
             }}
           />
         </div>
