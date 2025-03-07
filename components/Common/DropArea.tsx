@@ -3,7 +3,7 @@
 import { Question } from "@/app/types";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { GameSummeryCard } from "../Summery/GameSummeryCard";
 
 interface DropAreaProps {
@@ -21,17 +21,24 @@ export const DropArea = ({
   onDrop,
   title,
   items,
-  onItemsChange,
+  onItemsChange: _onItemsChange,
   initialItems = [],
   bgColor = "bg-blue-50",
   borderColor = "border-blue-500",
   animate = false,
 }: DropAreaProps) => {
+  const onItemsChange = useCallback(
+    (newItems: Question[]) => {
+      _onItemsChange(newItems);
+    },
+    [_onItemsChange],
+  );
+
   useEffect(() => {
     if (initialItems.length > 0 && items.length === 0) {
       onItemsChange(initialItems);
     }
-  }, []);
+  }, [initialItems, items, onItemsChange]);
 
   return (
     <div className="space-y-2 w-full">

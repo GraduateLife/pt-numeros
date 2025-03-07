@@ -1,6 +1,6 @@
 import { historyStorage } from "@/app/storage/history";
 import { isAnswerCorrect } from "@/lib/utils";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { SkipSSR } from "../Common/SkipSSR";
 import { useConfettiSideCannons } from "../Common/useConfettiSideCannons";
 import { AnimatedCircularProgressBar } from "../magicui/animated-circular-progress-bar";
@@ -15,7 +15,7 @@ const calculateCorrectRate = (
   };
 };
 
-function AccuracyIndicator() {
+const AccuracyIndicatorCore = () => {
   const history = historyStorage.getHistory();
   const totalAttempts = history.length;
   const correctAnswers = history.filter((entry) =>
@@ -25,7 +25,8 @@ function AccuracyIndicator() {
     () => calculateCorrectRate(totalAttempts, correctAnswers).rate,
     [totalAttempts, correctAnswers],
   );
-  const { trigger } = useConfettiSideCannons();
+  const { trigger: _trigger } = useConfettiSideCannons();
+  const trigger = useCallback(_trigger, [_trigger]);
   const fillColor = useMemo(() => {
     if (correctRate === 100) {
       trigger();
@@ -34,7 +35,7 @@ function AccuracyIndicator() {
       return "oklch(0.777 0.152 181.912)"; //teal-400
     }
     return "oklch(0.704 0.191 22.216)"; //red-400
-  }, [correctRate]);
+  }, [correctRate, trigger]);
   return (
     <div className="flex items-center justify-center font-semibold">
       <span className="mr-2">你的正确率:</span>
@@ -50,12 +51,12 @@ function AccuracyIndicator() {
       />
     </div>
   );
-}
+};
 
-export default () => {
+export const AccuracyIndicator = () => {
   return (
     <SkipSSR fallback={<span>计算中...</span>}>
-      <AccuracyIndicator />
+      <AccuracyIndicatorCore />
     </SkipSSR>
   );
 };

@@ -16,7 +16,6 @@ interface InformationTooltipProps {
 
 const InformationTooltip: React.FC<InformationTooltipProps> = ({
   text,
-  side = "top",
   className,
   size = 16,
 }) => {

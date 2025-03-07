@@ -52,7 +52,12 @@ export default function GamePanel() {
       default:
         throw new Error("Invalid mode");
     }
-  }, [modeParam]);
+  }, [
+    modeParam,
+    settings.oneByOne.timeLimit,
+    settings.tillCrash.timeLimit,
+    settings.timed.timeLimit,
+  ]);
 
   const {
     data: question,

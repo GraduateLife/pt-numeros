@@ -3,7 +3,7 @@ import { GameHistory, historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
 import { Question } from "@/app/types";
 import { DropArea } from "@/components/Common/DropArea";
-import AccuracyIndicator from "@/components/NumberGame/AccuracyIndicator";
+import { AccuracyIndicator } from "@/components/NumberGame/AccuracyIndicator";
 import { QuickSortDialog } from "@/components/Summery/QuickSortDialog";
 import { Button } from "@/components/ui/button";
 import { isAnswerCorrect } from "@/lib/utils";
