@@ -1,8 +1,9 @@
 import { Anvil, Pencil, Timer } from "lucide-react";
 import { Button } from "../ui/button";
+import { GameMode, GameModeZh } from "./constants";
 
 interface GameWaitingToStartScreenProps {
-  emitStartSignal: (mode: "one-by-one" | "till-crash" | "timed") => void;
+  emitStartSignal: (mode: GameMode) => void;
 }
 
 export default function GameWaitingToStartScreen({
@@ -13,19 +14,22 @@ export default function GameWaitingToStartScreen({
       <div className="flex gap-2">
         <Button
           className="flex-1"
-          onClick={() => emitStartSignal("one-by-one")}
+          onClick={() => emitStartSignal(GameMode.OneByOne)}
         >
-          <Pencil className="mr-2" />
-          练习一题
+          <Pencil className="mr-2" />「{GameModeZh[GameMode.OneByOne]}」
         </Button>
       </div>
-      <Button onClick={() => emitStartSignal("till-crash")} className="w-full">
-        <Anvil className="mr-2" />
-        Rush 模式
+      <Button
+        onClick={() => emitStartSignal(GameMode.TillCrash)}
+        className="w-full"
+      >
+        <Anvil className="mr-2" />「{GameModeZh[GameMode.TillCrash]}」
       </Button>
-      <Button onClick={() => emitStartSignal("timed")} className="w-full">
-        <Timer className="mr-2" />
-        限时练习
+      <Button
+        onClick={() => emitStartSignal(GameMode.Timed)}
+        className="w-full"
+      >
+        <Timer className="mr-2" />「{GameModeZh[GameMode.Timed]}」
       </Button>
     </div>
   );

@@ -3,5 +3,5 @@ export default function NumberGameLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <main className="p-6">{children}</main>;
+  return <main className="w-full">{children}</main>;
 }

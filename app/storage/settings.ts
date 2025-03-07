@@ -10,7 +10,7 @@ export const defaultSettings: GameSettings = {
     timeLimit: 10,
   },
   tillCrash: {
-    timePerQuestion: 10,
+    timeLimit: 10,
     lives: 3,
   },
   timed: {

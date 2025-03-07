@@ -8,13 +8,14 @@ import { isAnswerCorrect } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Hand, Volume2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DigitInput } from "../Common/DigitInput";
 import SpinnerCountDown from "../Common/SpinnerCountDown";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
+import { GameMode, toKebabCase } from "./constants";
 
 async function getQuestion(minNumber: number, maxNumber: number) {
   const response =
@@ -23,10 +24,10 @@ async function getQuestion(minNumber: number, maxNumber: number) {
   return response;
 }
 
-type GameMode = "one-by-one" | "till-crash" | "timed";
-
 export default function GamePanel() {
-  const { mode } = useParams() as { mode: GameMode };
+  const { mode: modeParam } = useParams() as {
+    mode: "one-by-one" | "till-crash" | "timed";
+  };
   const settings = settingsStorage.getSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,12 +40,19 @@ export default function GamePanel() {
   const minNumber = settings.general.minNumber;
   const maxNumber = settings.general.maxNumber;
 
-  const givenSeconds =
-    mode === "one-by-one"
-      ? settings.oneByOne.timeLimit
-      : mode === "till-crash"
-        ? settings.tillCrash.timePerQuestion
-        : settings.timed.timeLimit;
+  const givenSeconds = useMemo(() => {
+    console.log("mode", modeParam);
+    switch (modeParam) {
+      case toKebabCase(GameMode.OneByOne):
+        return settings.oneByOne.timeLimit;
+      case toKebabCase(GameMode.TillCrash):
+        return settings.tillCrash.timeLimit;
+      case toKebabCase(GameMode.Timed):
+        return settings.timed.timeLimit;
+      default:
+        throw new Error("Invalid mode");
+    }
+  }, [modeParam]);
 
   const {
     data: question,
@@ -59,21 +67,28 @@ export default function GamePanel() {
   });
 
   const navigateToEndPage = useCallback(() => {
-    router.replace(`/number-game/${mode}/end`);
-  }, [router, mode]);
+    router.replace(`/number-game/${modeParam}/end`);
+  }, [router, modeParam]);
 
   const navigateToNextRound = useCallback(() => {
-    router.replace(`/number-game/${mode}?round=${Number(round) + 1}`);
-  }, [router, mode, round]);
+    router.replace(`/number-game/${modeParam}?round=${Number(round) + 1}`);
+  }, [router, modeParam, round]);
 
   const handleTimeout = () => {
-    if (mode === "till-crash") {
+    if (modeParam === toKebabCase(GameMode.TillCrash)) {
       handleCheckAnswer();
     } else {
       const validatedInput = validateInput(userInput);
-      historyStorage.appendHistory(validatedInput, mode, question!.toString());
+      historyStorage.appendHistory(
+        validatedInput,
+        modeParam,
+        question!.toString(),
+      );
       navigateToEndPage();
     }
+  };
+  const handleGiveUp = () => {
+    handleCheckAnswer();
   };
 
   const validateInput = (value: string) => {
@@ -90,14 +105,18 @@ export default function GamePanel() {
 
   const handleCheckAnswer = useCallback(() => {
     const validatedInput = validateInput(userInput);
-    historyStorage.appendHistory(validatedInput, mode, question!.toString());
+    historyStorage.appendHistory(
+      validatedInput,
+      modeParam,
+      question!.toString(),
+    );
 
     try {
-      switch (mode) {
-        case "one-by-one":
+      switch (modeParam) {
+        case toKebabCase(GameMode.OneByOne):
           navigateToEndPage();
           break;
-        case "till-crash":
+        case toKebabCase(GameMode.TillCrash):
           if (isAnswerCorrect(validatedInput, question!)) {
             navigateToNextRound();
             refetch();
@@ -112,7 +131,7 @@ export default function GamePanel() {
             }
           }
           break;
-        case "timed":
+        case GameMode.Timed:
           navigateToNextRound();
           refetch();
           break;
@@ -124,7 +143,7 @@ export default function GamePanel() {
     }
   }, [
     userInput,
-    mode,
+    modeParam,
     question,
     navigateToEndPage,
     navigateToNextRound,
@@ -147,10 +166,8 @@ export default function GamePanel() {
       <div className="flex justify-center">
         <SpinnerCountDown
           duration={givenSeconds}
-          key={mode !== "timed" ? round : undefined}
-          onComplete={() => {
-            handleTimeout();
-          }}
+          key={modeParam !== toKebabCase(GameMode.Timed) ? round : undefined}
+          onComplete={handleTimeout}
         />
       </div>
 
@@ -167,13 +184,11 @@ export default function GamePanel() {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => {
-            handleTimeout();
-          }}
+          onClick={handleGiveUp}
           className="w-full"
         >
           <Hand className="mr-2" />
-          我放弃! 进入结算页面
+          我不会!
         </Button>
       </div>
       <div className="flex flex-col gap-y-2 justify-center items-center">
@@ -203,6 +218,15 @@ export default function GamePanel() {
         >
           提交答案
         </Button>
+        {modeParam === toKebabCase(GameMode.Timed) && (
+          <Button
+            variant={"confirm"}
+            onClick={() => handleTimeout()}
+            className="w-fit mt-3"
+          >
+            放弃并进入结算
+          </Button>
+        )}
       </div>
     </div>
   );

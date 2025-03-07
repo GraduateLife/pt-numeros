@@ -31,7 +31,7 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
     });
 
     return () => controls.stop();
-  }, [duration, onComplete]);
+  }, [duration]);
 
   return (
     <div className="relative flex items-center justify-center">

@@ -13,8 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import InformationTooltip from "../Common/InfomationTooltip";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
+import { GameMode, GameModeZh } from "./constants";
+
 export interface GameSettings {
   general: {
     minNumber: number;
@@ -25,7 +28,7 @@ export interface GameSettings {
     timeLimit: number;
   };
   tillCrash: {
-    timePerQuestion: number;
+    timeLimit: number;
     lives: number;
   };
   timed: {
@@ -106,9 +109,15 @@ export default function GameSettingsDialog({
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="general">通用设置</TabsTrigger>
-            <TabsTrigger value="oneByOne">单题模式</TabsTrigger>
-            <TabsTrigger value="tillCrash">连续模式</TabsTrigger>
-            <TabsTrigger value="timed">计时模式</TabsTrigger>
+            <TabsTrigger value="oneByOne">
+              {GameModeZh[GameMode.OneByOne]}
+            </TabsTrigger>
+            <TabsTrigger value="tillCrash">
+              {GameModeZh[GameMode.TillCrash]}
+            </TabsTrigger>
+            <TabsTrigger value="timed">
+              {GameModeZh[GameMode.Timed]}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 py-4">
@@ -148,10 +157,13 @@ export default function GameSettingsDialog({
                 }
               />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="default-instant-check-mode">
-                默认开启输完即验
-              </Label>
+            <div className="flex gap-2 justify-between items-center">
+              <div className="flex gap-2">
+                <Label htmlFor="default-instant-check-mode">
+                  默认开启输完即验
+                </Label>
+                <InformationTooltip text="开启后，输入答案后立即进行答案验证，而不会等待点击提交按钮。" />
+              </div>
               <Switch
                 id="default-instant-check-mode"
                 checked={tempSettings.general.defaultInstantCheckMode}
@@ -193,11 +205,11 @@ export default function GameSettingsDialog({
                 type="number"
                 min={1}
                 max={300}
-                value={tempSettings.tillCrash.timePerQuestion}
+                value={tempSettings.tillCrash.timeLimit}
                 onChange={(e) =>
                   updateSettings(
                     "tillCrash",
-                    "timePerQuestion",
+                    "timeLimit",
                     Number(e.target.value),
                     { min: 1, max: 300 },
                   )
