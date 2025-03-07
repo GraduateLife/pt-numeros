@@ -4,7 +4,8 @@ import GameSettingsDialog from "@/components/NumberGame/GameSettingDialog";
 import GameWaitingToStartScreen from "@/components/NumberGame/GameWaitingToStartScreen";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { historyStorage } from "./storage/history";
 import { defaultSettings, settingsStorage } from "./storage/settings";
 
 const buildGameUrl = (mode: GameMode) => {
@@ -27,6 +28,9 @@ const buildGameUrl = (mode: GameMode) => {
 export default function NumberGame() {
   const router = useRouter();
   const [settings, setSettings] = useState(settingsStorage.getSettings());
+  useEffect(() => {
+    historyStorage.clearHistory();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
