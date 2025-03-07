@@ -1,7 +1,7 @@
 "use client";
 import { formatDuration, intervalToDuration } from "date-fns";
 import { animate, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface SpinnerCountdownProps {
   duration: number; // Countdown duration in seconds
@@ -14,8 +14,9 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
   duration,
   size = 100,
   strokeWidth = 8,
-  onComplete,
+  onComplete: _onComplete,
 }) => {
+  const onComplete = useCallback(_onComplete, [_onComplete]);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const [progress, setProgress] = useState(1);
@@ -31,7 +32,7 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
     });
 
     return () => controls.stop();
-  }, [duration, onComplete]);
+  }, [duration]);
 
   return (
     <div className="relative flex items-center justify-center">

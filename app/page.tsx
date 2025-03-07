@@ -1,23 +1,25 @@
 "use client";
+import { GameMode, toKebabCase } from "@/components/NumberGame/constants";
 import GameSettingsDialog from "@/components/NumberGame/GameSettingDialog";
 import GameWaitingToStartScreen from "@/components/NumberGame/GameWaitingToStartScreen";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { historyStorage } from "./storage/history";
 import { defaultSettings, settingsStorage } from "./storage/settings";
 
-const buildGameUrl = (mode: string) => {
+const buildGameUrl = (mode: GameMode) => {
   const baseParams = new URLSearchParams({
     round: "1",
   });
 
   switch (mode) {
-    case "one-by-one":
-      return `/number-game/one-by-one?${baseParams.toString()}`;
-    case "till-crash":
-      return `/number-game/till-crash?${baseParams.toString()}`;
-    case "timed":
-      return `/number-game/timed?${baseParams.toString()}`;
+    case GameMode.OneByOne:
+      return `/number-game/${toKebabCase(GameMode.OneByOne)}?${baseParams.toString()}`;
+    case GameMode.TillCrash:
+      return `/number-game/${toKebabCase(GameMode.TillCrash)}?${baseParams.toString()}`;
+    case GameMode.Timed:
+      return `/number-game/${toKebabCase(GameMode.Timed)}?${baseParams.toString()}`;
     default:
       throw new Error("Invalid practice mode");
   }
@@ -26,6 +28,9 @@ const buildGameUrl = (mode: string) => {
 export default function NumberGame() {
   const router = useRouter();
   const [settings, setSettings] = useState(settingsStorage.getSettings());
+  useEffect(() => {
+    historyStorage.clearHistory();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
