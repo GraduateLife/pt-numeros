@@ -1,7 +1,11 @@
 import confetti from "canvas-confetti";
+import { useCallback, useState } from "react";
 
 export function useConfettiSideCannons() {
-  const trigger = () => {
+  const [isTriggered, setIsTriggered] = useState(false);
+  const _trigger = () => {
+    if (isTriggered) return;
+    setIsTriggered(true);
     const end = Date.now() + 3 * 1000; // 3 seconds
     const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
 
@@ -30,6 +34,7 @@ export function useConfettiSideCannons() {
 
     frame();
   };
+  const trigger = useCallback(_trigger, [_trigger]);
 
-  return { trigger };
+  return { trigger, isTriggered };
 }

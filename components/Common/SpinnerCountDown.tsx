@@ -32,6 +32,7 @@ export const SpinnerCountdown: React.FC<SpinnerCountdownProps> = ({
     });
 
     return () => controls.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration]);
 
   return (
