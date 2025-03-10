@@ -19,7 +19,7 @@ export function isAnswerCorrect(
   if (typeof itemOrInput === "string") {
     return Number.parseInt(itemOrInput) === answerNumber;
   }
-  return itemOrInput.userInput === itemOrInput.question;
+  return itemOrInput.userInput === itemOrInput.referenceAnswer;
 }
 
 export interface QuestionEnriched extends Question {

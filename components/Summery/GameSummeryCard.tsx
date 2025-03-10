@@ -4,19 +4,15 @@ import { Volume2 } from "lucide-react";
 import { useMemo } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 
-interface GameSummeryCardProps {
-  questionId: number;
-  userInput: string;
-  question: string;
-  onDragEnd?: () => void;
-}
-
 export const GameSummeryCard = ({
   questionId,
   userInput,
   question,
-  onDragEnd,
-}: GameSummeryCardProps) => {
+}: {
+  questionId: number;
+  userInput: string;
+  question: string;
+}) => {
   const answerCondition = useMemo(() => {
     if (userInput === "") {
       return null;
@@ -40,11 +36,8 @@ export const GameSummeryCard = ({
           }),
         );
       }}
-      onDragEnd={() => {
-        onDragEnd?.();
-      }}
       className={cn(
-        "min-w-[110px] text-center border rounded-lg select-none max-w-[420px] cursor-move",
+        "w-[220px] min-w-[110px] text-center border rounded-lg select-none max-w-[420px] cursor-move",
         (answerCondition === false || answerCondition === null) &&
           "bg-red-100 border-red-600",
         answerCondition === true && "bg-green-100 border-green-600",
@@ -87,7 +80,7 @@ export const GameSummeryCard = ({
         </div>
       </CardContent>
       <CardFooter
-        className="hover:bg-amber-500 cursor-pointer flex items-center justify-center gap-x-2 bg-amber-400 py-2 rounded-b-md"
+        className="hover:bg-amber-800 cursor-pointer flex items-center justify-center gap-x-2 bg-amber-400 py-2 rounded-b-md"
         onClick={() => speak(question)}
       >
         <span className="text-slate-100 font-bold">再听一次</span>

@@ -1,24 +1,27 @@
 "use client";
 import { GameHistory, historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
-import { Question } from "@/app/types";
+import { Question, QuestionType } from "@/app/types";
 import { DropArea } from "@/components/Common/DropArea";
 import { AccuracyIndicator } from "@/components/NumberGame/AccuracyIndicator";
+import { GameSummeryCard } from "@/components/Summery/GameSummeryCard";
 import { QuickSortDialog } from "@/components/Summery/QuickSortDialog";
 import { Button } from "@/components/ui/button";
 import { isAnswerCorrect } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const historyToQuestion = (history: GameHistory[]) => {
+import { toast } from "sonner";
+const historiesToQuestion = (history: GameHistory[]): Question[] => {
   return history.map((entry) => ({
     questionId: history.findIndex((h) => h.timestamp === entry.timestamp),
     userInput: String(entry.input),
-    question: String(entry.answer),
+    questionText: String(entry.answer),
+    referenceAnswer: String(entry.answer),
+    questionType: QuestionType.FillFree,
   }));
 };
 const sortByQuestionId = (items: Question[]) => {
-  return items.sort((a, b) => a.questionId - b.questionId);
+  return [...items].sort((a, b) => a.questionId - b.questionId);
 };
 
 enum LearningZone {
@@ -48,7 +51,7 @@ export default function GameEndPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedHistory = historyStorage.getHistory();
-      const allQuestions = historyToQuestion(savedHistory);
+      const allQuestions = historiesToQuestion(savedHistory);
 
       // Use the new function to sort items into their initial zones
       const sortedItems = allQuestions.reduce(
@@ -71,7 +74,6 @@ export default function GameEndPage() {
 
   const handleDrop = (item: Question, targetArea: LearningZone) => {
     // Remove the item from all areas first
-    console.log("handleDrop", item, targetArea);
     const removeFromAll = () => {
       setNeedPracticeZoneItems((items) =>
         items.filter((i) => i.questionId !== item.questionId),
@@ -137,6 +139,13 @@ export default function GameEndPage() {
     setIsDialogOpen(false);
   };
 
+  const handleSortByQuestionId = () => {
+    setNeedPracticeZoneItems(sortByQuestionId([...needPracticeZoneItems]));
+    setFamiliarZoneItems(sortByQuestionId([...familiarZoneItems]));
+    setMasteredZoneItems(sortByQuestionId([...masteredZoneItems]));
+    toast.success("已按题号排序");
+  };
+
   return (
     <div className="min-h-[90vh] p-6 w-full flex flex-col items-center justify-center py-8 select-none">
       <AccuracyIndicator />
@@ -145,11 +154,21 @@ export default function GameEndPage() {
           <span className="text-sm text-gray-500">
             在下一次练习中,这些题目将...
           </span>
-          <QuickSortDialog
-            open={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            onSort={handleQuickSort}
-          />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-sm"
+              onClick={handleSortByQuestionId}
+            >
+              按题号排序
+            </Button>
+            <QuickSortDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              onSort={handleQuickSort}
+            />
+          </div>
         </div>
         <div className="w-full xl:grid xl:grid-cols-2 xl:gap-4 space-y-4 xl:space-y-0">
           <div className="space-y-4">
@@ -158,9 +177,15 @@ export default function GameEndPage() {
               title={`增加出现频率(${needPracticeZoneItems.length})`}
               bgColor="bg-red-50"
               borderColor="border-red-500"
-              items={sortByQuestionId(needPracticeZoneItems)}
+              items={needPracticeZoneItems}
               onItemsChange={setNeedPracticeZoneItems}
-              animate={true}
+              renderItem={(item) => (
+                <GameSummeryCard
+                  questionId={item.questionId}
+                  userInput={item.userInput}
+                  question={item.referenceAnswer}
+                />
+              )}
             />
           </div>
           <div className="space-y-4">
@@ -169,18 +194,30 @@ export default function GameEndPage() {
               title={`不会改变出现频率(${familiarZoneItems.length})`}
               bgColor="bg-yellow-50"
               borderColor="border-yellow-500"
-              items={sortByQuestionId(familiarZoneItems)}
+              items={familiarZoneItems}
               onItemsChange={setFamiliarZoneItems}
-              animate={true}
+              renderItem={(item) => (
+                <GameSummeryCard
+                  questionId={item.questionId}
+                  userInput={item.userInput}
+                  question={item.referenceAnswer}
+                />
+              )}
             />
             <DropArea
               onDrop={(item) => handleDrop(item, LearningZone.Mastered)}
               title={`减少出现频率(${masteredZoneItems.length})`}
               bgColor="bg-green-50"
               borderColor="border-green-500"
-              items={sortByQuestionId(masteredZoneItems)}
+              items={masteredZoneItems}
               onItemsChange={setMasteredZoneItems}
-              animate={true}
+              renderItem={(item) => (
+                <GameSummeryCard
+                  questionId={item.questionId}
+                  userInput={item.userInput}
+                  question={item.referenceAnswer}
+                />
+              )}
             />
           </div>
         </div>

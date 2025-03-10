@@ -2,9 +2,8 @@
 
 import { Question } from "@/app/types";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect } from "react";
-import { GameSummeryCard } from "../Summery/GameSummeryCard";
+import { DragWrapper } from "./Draggable";
 
 interface DropAreaProps {
   onDrop: (item: Question) => void;
@@ -14,7 +13,7 @@ interface DropAreaProps {
   initialItems?: Question[];
   bgColor?: string;
   borderColor?: string;
-  animate?: boolean;
+  renderItem: (item: Question) => React.ReactNode;
 }
 
 export const DropArea = ({
@@ -25,7 +24,7 @@ export const DropArea = ({
   initialItems = [],
   bgColor = "bg-blue-50",
   borderColor = "border-blue-500",
-  animate = false,
+  renderItem,
 }: DropAreaProps) => {
   const onItemsChange = useCallback(
     (newItems: Question[]) => {
@@ -77,23 +76,53 @@ export const DropArea = ({
         {items.length === 0 && <p className="text-gray-500">拖放题目到这里</p>}
         {items.length > 0 && (
           <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-1">
-            <AnimatePresence>
-              {items.map((item) => (
-                <motion.div
-                  key={item.questionId}
-                  initial={animate ? { opacity: 0, scale: 0.8 } : {}}
-                  animate={animate ? { opacity: 1, scale: 1 } : {}}
-                  exit={animate ? { opacity: 0, scale: 0.8 } : {}}
-                  transition={{ duration: 0.2 }}
-                >
-                  <GameSummeryCard
-                    questionId={item.questionId}
-                    userInput={item.userInput}
-                    question={item.question}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {items.map((item) => (
+              <DragWrapper
+                hoverClassName="ring-2 rounded-md ring-stone-200"
+                key={item.questionId}
+                onDrop={(e) => {
+                  try {
+                    const draggedItem = JSON.parse(
+                      e.dataTransfer.getData("text/plain"),
+                    );
+                    const targetItem = item;
+
+                    // Check if the dragged item is already in the list
+                    const draggedIndex = items.findIndex(
+                      (i) => i.questionId === draggedItem.questionId,
+                    );
+                    const targetIndex = items.findIndex(
+                      (i) => i.questionId === targetItem.questionId,
+                    );
+                    if (draggedIndex === -1) {
+                      // This is a new item being dropped
+                      const newItems = [...items];
+                      // Insert the new item at the target position
+                      newItems.splice(targetIndex, 0, draggedItem);
+                      onItemsChange(newItems);
+                      onDrop(draggedItem);
+                    } else {
+                      // This is reordering existing items
+                      const newItems = [...items];
+                      // Remove the dragged item from its original position
+                      newItems.splice(draggedIndex, 1);
+                      // Insert it at the new position
+                      newItems.splice(targetIndex, 0, draggedItem);
+                      onItemsChange(newItems);
+                    }
+                  } catch (error) {
+                    console.error("Failed to handle card drop:", error);
+                  }
+                }}
+              >
+                {/* <GameSummeryCard
+                  questionId={item.questionId}
+                  userInput={item.userInput}
+                  question={item.question}
+                /> */}
+                {renderItem(item)}
+              </DragWrapper>
+            ))}
           </div>
         )}
       </div>

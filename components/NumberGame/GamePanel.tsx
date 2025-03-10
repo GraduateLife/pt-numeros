@@ -41,7 +41,6 @@ export default function GamePanel() {
   const maxNumber = settings.general.maxNumber;
 
   const givenSeconds = useMemo(() => {
-    console.log("mode", modeParam);
     switch (modeParam) {
       case toKebabCase(GameMode.OneByOne):
         return settings.oneByOne.timeLimit;
