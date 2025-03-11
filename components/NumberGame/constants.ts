@@ -3,6 +3,13 @@ export enum GameMode {
   TillCrash = "tillCrash",
   Timed = "timed",
 }
+
+export enum GameModeParam {
+  OneByOne = "one-by-one",
+  TillCrash = "till-crash",
+  Timed = "timed",
+}
+
 /**
  * Converts a string to kebab-case
  * @example

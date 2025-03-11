@@ -1,12 +1,14 @@
 // ... existing code ...
+import { GameMode } from "@/components/NumberGame/constants";
 
 const HISTORY_KEY = "number-game-history";
 
 export interface GameHistory {
-  input: string;
-  mode: string;
-  answer: string;
+  userInput: string;
+  gameMode: GameMode;
+  referenceAnswer: string;
   timestamp: number;
+  questionId: string;
 }
 
 export const historyStorage = {
@@ -27,14 +29,25 @@ export const historyStorage = {
     if (typeof window === "undefined") return;
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   },
-  appendHistory: (input: string, mode: string, answer: string): void => {
+  appendHistory: (
+    userInput: string,
+    gameMode: GameMode,
+    referenceAnswer: string,
+    questionId: string,
+  ): void => {
     if (typeof window === "undefined") return;
     const currentHistory = historyStorage.getHistory();
     localStorage.setItem(
       HISTORY_KEY,
       JSON.stringify([
         ...currentHistory,
-        { input, mode, answer, timestamp: Date.now() },
+        {
+          userInput,
+          gameMode,
+          referenceAnswer,
+          timestamp: Date.now(),
+          questionId,
+        },
       ]),
     );
   },
