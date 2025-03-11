@@ -1,27 +1,25 @@
 "use client";
 import { GameHistory, historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
-import { Question, QuestionType } from "@/app/types";
 import { DropArea } from "@/components/Common/DropArea";
 import { AccuracyIndicator } from "@/components/NumberGame/AccuracyIndicator";
+import { isAnswerCorrect } from "@/components/NumberGame/number-game";
 import { GameSummeryCard } from "@/components/Summery/GameSummeryCard";
 import { QuickSortDialog } from "@/components/Summery/QuickSortDialog";
 import { Button } from "@/components/ui/button";
-import { isAnswerCorrect } from "@/lib/utils";
+import { generateQuestionSummary, QuestionSummary } from "@/lib/question.util";
+import { PrimitiveType } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-const historiesToQuestion = (history: GameHistory[]): Question[] => {
-  return history.map((entry) => ({
-    questionId: history.findIndex((h) => h.timestamp === entry.timestamp),
-    userInput: String(entry.input),
-    questionText: String(entry.answer),
-    referenceAnswer: String(entry.answer),
-    questionType: QuestionType.FillFree,
-  }));
+const historiesToQuestion = (history: GameHistory[]): QuestionSummary[] => {
+  const res = history.map((item, index) =>
+    generateQuestionSummary(item, index + 1, isAnswerCorrect),
+  );
+  return res;
 };
-const sortByQuestionId = (items: Question[]) => {
-  return [...items].sort((a, b) => a.questionId - b.questionId);
+const sortBySequenceNum = (items: QuestionSummary[]) => {
+  return [...items].sort((a, b) => a.sequenceNum - b.sequenceNum);
 };
 
 enum LearningZone {
@@ -30,8 +28,8 @@ enum LearningZone {
   Mastered = "mastered",
 }
 
-const determineInitialZone = (item: Question): LearningZone => {
-  if (!isAnswerCorrect(item)) {
+const determineInitialZone = (item: QuestionSummary): LearningZone => {
+  if (!item.isCorrect) {
     return LearningZone.Practice;
   }
   return LearningZone.Mastered;
@@ -42,10 +40,14 @@ export default function GameEndPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [needPracticeZoneItems, setNeedPracticeZoneItems] = useState<
-    Question[]
+    QuestionSummary[]
   >([]);
-  const [familiarZoneItems, setFamiliarZoneItems] = useState<Question[]>([]);
-  const [masteredZoneItems, setMasteredZoneItems] = useState<Question[]>([]);
+  const [familiarZoneItems, setFamiliarZoneItems] = useState<QuestionSummary[]>(
+    [],
+  );
+  const [masteredZoneItems, setMasteredZoneItems] = useState<QuestionSummary[]>(
+    [],
+  );
 
   // 初始化获取本轮做题历史
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function GameEndPage() {
         },
         { practice: [], familiar: [], mastered: [] } as Record<
           LearningZone,
-          Question[]
+          QuestionSummary[]
         >,
       );
 
@@ -72,7 +74,7 @@ export default function GameEndPage() {
     }
   }, []);
 
-  const handleDrop = (item: Question, targetArea: LearningZone) => {
+  const handleDrop = (item: QuestionSummary, targetArea: LearningZone) => {
     // Remove the item from all areas first
     const removeFromAll = () => {
       setNeedPracticeZoneItems((items) =>
@@ -129,7 +131,7 @@ export default function GameEndPage() {
       },
       { practice: [], familiar: [], mastered: [] } as Record<
         LearningZone,
-        Question[]
+        QuestionSummary[]
       >,
     );
 
@@ -140,9 +142,9 @@ export default function GameEndPage() {
   };
 
   const handleSortByQuestionId = () => {
-    setNeedPracticeZoneItems(sortByQuestionId([...needPracticeZoneItems]));
-    setFamiliarZoneItems(sortByQuestionId([...familiarZoneItems]));
-    setMasteredZoneItems(sortByQuestionId([...masteredZoneItems]));
+    setNeedPracticeZoneItems(sortBySequenceNum([...needPracticeZoneItems]));
+    setFamiliarZoneItems(sortBySequenceNum([...familiarZoneItems]));
+    setMasteredZoneItems(sortBySequenceNum([...masteredZoneItems]));
     toast.success("已按题号排序");
   };
 
@@ -173,49 +175,73 @@ export default function GameEndPage() {
         <div className="w-full xl:grid xl:grid-cols-2 xl:gap-4 space-y-4 xl:space-y-0">
           <div className="space-y-4">
             <DropArea
-              onDrop={(item) => handleDrop(item, LearningZone.Practice)}
+              onDrop={(item) =>
+                handleDrop(item as QuestionSummary, LearningZone.Practice)
+              }
               title={`增加出现频率(${needPracticeZoneItems.length})`}
               bgColor="bg-red-50"
               borderColor="border-red-500"
               items={needPracticeZoneItems}
-              onItemsChange={setNeedPracticeZoneItems}
+              onItemsChange={
+                setNeedPracticeZoneItems as (
+                  items: Record<string, PrimitiveType>[],
+                ) => void
+              }
+              renderKey="questionId"
               renderItem={(item) => (
                 <GameSummeryCard
-                  questionId={item.questionId}
-                  userInput={item.userInput}
-                  question={item.referenceAnswer}
+                  sequenceNum={Number(item.sequenceNum)}
+                  questionId={String(item.questionId)}
+                  userInput={String(item.userInput)}
+                  referenceAnswer={String(item.referenceAnswer)}
                 />
               )}
             />
           </div>
           <div className="space-y-4">
             <DropArea
-              onDrop={(item) => handleDrop(item, LearningZone.Familiar)}
+              renderKey="questionId"
+              onDrop={(item) =>
+                handleDrop(item as QuestionSummary, LearningZone.Familiar)
+              }
               title={`不会改变出现频率(${familiarZoneItems.length})`}
               bgColor="bg-yellow-50"
               borderColor="border-yellow-500"
               items={familiarZoneItems}
-              onItemsChange={setFamiliarZoneItems}
+              onItemsChange={
+                setFamiliarZoneItems as (
+                  items: Record<string, PrimitiveType>[],
+                ) => void
+              }
               renderItem={(item) => (
                 <GameSummeryCard
-                  questionId={item.questionId}
-                  userInput={item.userInput}
-                  question={item.referenceAnswer}
+                  sequenceNum={Number(item.sequenceNum)}
+                  questionId={String(item.questionId)}
+                  userInput={String(item.userInput)}
+                  referenceAnswer={String(item.referenceAnswer)}
                 />
               )}
             />
             <DropArea
-              onDrop={(item) => handleDrop(item, LearningZone.Mastered)}
+              renderKey="questionId"
+              onDrop={(item) =>
+                handleDrop(item as QuestionSummary, LearningZone.Mastered)
+              }
               title={`减少出现频率(${masteredZoneItems.length})`}
               bgColor="bg-green-50"
               borderColor="border-green-500"
               items={masteredZoneItems}
-              onItemsChange={setMasteredZoneItems}
+              onItemsChange={
+                setMasteredZoneItems as (
+                  items: Record<string, PrimitiveType>[],
+                ) => void
+              }
               renderItem={(item) => (
                 <GameSummeryCard
-                  questionId={item.questionId}
-                  userInput={item.userInput}
-                  question={item.referenceAnswer}
+                  sequenceNum={Number(item.sequenceNum)}
+                  questionId={String(item.questionId)}
+                  userInput={String(item.userInput)}
+                  referenceAnswer={String(item.referenceAnswer)}
                 />
               )}
             />

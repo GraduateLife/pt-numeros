@@ -3,8 +3,11 @@
 import { historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
 import { settingsStorage } from "@/app/storage/settings";
+import {
+  generateQuestion,
+  isAnswerCorrect,
+} from "@/components/NumberGame/number-game";
 import { speak } from "@/lib/speak";
-import { isAnswerCorrect } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Hand, Volume2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -15,19 +18,24 @@ import SpinnerCountDown from "../Common/SpinnerCountDown";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { GameMode, toKebabCase } from "./constants";
-
-async function getQuestion(minNumber: number, maxNumber: number) {
-  const response =
-    Math.floor(Math.random() * (maxNumber - minNumber + 1)) + minNumber;
-  speak(response.toString());
-  return response;
-}
+import { GameMode, GameModeParam, toKebabCase } from "./constants";
 
 export default function GamePanel() {
-  const { mode: modeParam } = useParams() as {
-    mode: "one-by-one" | "till-crash" | "timed";
-  };
+  const { mode: modeParam } = useParams<{ mode: GameModeParam }>();
+
+  const gameMode = useMemo(() => {
+    switch (modeParam) {
+      case GameModeParam.OneByOne:
+        return GameMode.OneByOne;
+      case GameModeParam.TillCrash:
+        return GameMode.TillCrash;
+      case GameModeParam.Timed:
+        return GameMode.Timed;
+      default:
+        throw new Error("Invalid mode");
+    }
+  }, [modeParam]);
+
   const settings = settingsStorage.getSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,18 +49,18 @@ export default function GamePanel() {
   const maxNumber = settings.general.maxNumber;
 
   const givenSeconds = useMemo(() => {
-    switch (modeParam) {
-      case toKebabCase(GameMode.OneByOne):
+    switch (gameMode) {
+      case GameMode.OneByOne:
         return settings.oneByOne.timeLimit;
-      case toKebabCase(GameMode.TillCrash):
+      case GameMode.TillCrash:
         return settings.tillCrash.timeLimit;
-      case toKebabCase(GameMode.Timed):
+      case GameMode.Timed:
         return settings.timed.timeLimit;
       default:
         throw new Error("Invalid mode");
     }
   }, [
-    modeParam,
+    gameMode,
     settings.oneByOne.timeLimit,
     settings.tillCrash.timeLimit,
     settings.timed.timeLimit,
@@ -64,7 +72,7 @@ export default function GamePanel() {
     refetch,
   } = useQuery({
     queryKey: ["question", minNumber, maxNumber],
-    queryFn: () => getQuestion(minNumber, maxNumber),
+    queryFn: () => generateQuestion(minNumber, maxNumber),
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,
@@ -79,14 +87,15 @@ export default function GamePanel() {
   }, [router, modeParam, round]);
 
   const handleTimeout = () => {
-    if (modeParam === toKebabCase(GameMode.TillCrash)) {
+    if (modeParam === toKebabCase(GameModeParam.TillCrash)) {
       handleCheckAnswer();
     } else {
       const validatedInput = validateInput(userInput);
       historyStorage.appendHistory(
         validatedInput,
-        modeParam,
-        question!.toString(),
+        gameMode,
+        question!.referenceAnswer,
+        question!.questionId,
       );
       navigateToEndPage();
     }
@@ -111,17 +120,18 @@ export default function GamePanel() {
     const validatedInput = validateInput(userInput);
     historyStorage.appendHistory(
       validatedInput,
-      modeParam,
-      question!.toString(),
+      gameMode,
+      question!.referenceAnswer,
+      question!.questionId,
     );
 
     try {
-      switch (modeParam) {
-        case toKebabCase(GameMode.OneByOne):
+      switch (gameMode) {
+        case GameMode.OneByOne:
           navigateToEndPage();
           break;
-        case toKebabCase(GameMode.TillCrash):
-          if (isAnswerCorrect(validatedInput, question!)) {
+        case GameMode.TillCrash:
+          if (isAnswerCorrect(validatedInput, question!.referenceAnswer)) {
             navigateToNextRound();
             refetch();
           } else {
@@ -149,6 +159,7 @@ export default function GamePanel() {
     userInput,
     modeParam,
     question,
+    gameMode,
     navigateToEndPage,
     navigateToNextRound,
     refetch,
@@ -179,7 +190,7 @@ export default function GamePanel() {
         <Button
           variant="outline"
           size="lg"
-          onClick={() => speak(question!.toString())}
+          onClick={() => speak(question!.referenceAnswer)}
           className="w-full"
         >
           <Volume2 className="mr-2" />

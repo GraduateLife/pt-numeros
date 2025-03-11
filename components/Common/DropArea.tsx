@@ -1,19 +1,19 @@
 // ... existing code ...
 
-import { Question } from "@/app/types";
-import { cn } from "@/lib/utils";
+import { cn, PrimitiveType } from "@/lib/utils";
 import { useCallback, useEffect } from "react";
 import { DragWrapper } from "./Draggable";
 
 interface DropAreaProps {
-  onDrop: (item: Question) => void;
+  onDrop: (item: Record<string, PrimitiveType>) => void;
   title: string;
-  items: Question[];
-  onItemsChange: (items: Question[]) => void;
-  initialItems?: Question[];
+  items: Record<string, PrimitiveType>[];
+  onItemsChange: (items: Record<string, PrimitiveType>[]) => void;
+  initialItems?: Record<string, PrimitiveType>[];
   bgColor?: string;
   borderColor?: string;
-  renderItem: (item: Question) => React.ReactNode;
+  renderItem: (item: Record<string, PrimitiveType>) => React.ReactNode;
+  renderKey: string;
 }
 
 export const DropArea = ({
@@ -25,9 +25,10 @@ export const DropArea = ({
   bgColor = "bg-blue-50",
   borderColor = "border-blue-500",
   renderItem,
+  renderKey,
 }: DropAreaProps) => {
   const onItemsChange = useCallback(
-    (newItems: Question[]) => {
+    (newItems: Record<string, PrimitiveType>[]) => {
       _onItemsChange(newItems);
     },
     [_onItemsChange],
@@ -79,7 +80,7 @@ export const DropArea = ({
             {items.map((item) => (
               <DragWrapper
                 hoverClassName="ring-2 rounded-md ring-stone-200"
-                key={item.questionId}
+                key={item[renderKey].toString()}
                 onDrop={(e) => {
                   try {
                     const draggedItem = JSON.parse(
@@ -89,10 +90,10 @@ export const DropArea = ({
 
                     // Check if the dragged item is already in the list
                     const draggedIndex = items.findIndex(
-                      (i) => i.questionId === draggedItem.questionId,
+                      (i) => i[renderKey] === draggedItem[renderKey],
                     );
                     const targetIndex = items.findIndex(
-                      (i) => i.questionId === targetItem.questionId,
+                      (i) => i[renderKey] === targetItem[renderKey],
                     );
                     if (draggedIndex === -1) {
                       // This is a new item being dropped

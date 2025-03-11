@@ -1,27 +1,32 @@
+import { isAnswerCorrect } from "@/components/NumberGame/number-game";
 import { speak } from "@/lib/speak";
-import { cn, isAnswerCorrect } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Volume2 } from "lucide-react";
 import { useMemo } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
 
+type GameSummeryCardProps = {
+  sequenceNum: number;
+  questionId: string;
+  userInput: string;
+  referenceAnswer: string;
+};
+
 export const GameSummeryCard = ({
+  sequenceNum,
   questionId,
   userInput,
-  question,
-}: {
-  questionId: number;
-  userInput: string;
-  question: string;
-}) => {
+  referenceAnswer,
+}: GameSummeryCardProps) => {
   const answerCondition = useMemo(() => {
     if (userInput === "") {
       return null;
     }
-    if (isAnswerCorrect(userInput, Number(question))) {
+    if (isAnswerCorrect(userInput, referenceAnswer)) {
       return true;
     }
     return false;
-  }, [userInput, question]);
+  }, [userInput, referenceAnswer]);
 
   return (
     <Card
@@ -32,8 +37,9 @@ export const GameSummeryCard = ({
           JSON.stringify({
             questionId,
             userInput,
-            question,
-          }),
+            referenceAnswer,
+            sequenceNum,
+          } satisfies GameSummeryCardProps),
         );
       }}
       className={cn(
@@ -53,13 +59,13 @@ export const GameSummeryCard = ({
             answerCondition === true && "text-green-600",
           )}
         >
-          Q{questionId + 1}
+          Q{sequenceNum}
         </span>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center text-xl">
           <span className="font-semibold">正确答案: </span>
-          <span>{question}</span>
+          <span>{referenceAnswer}</span>
         </div>
         <div className="flex flex-col items-center text-xl">
           <div className="flex-1">
@@ -81,7 +87,7 @@ export const GameSummeryCard = ({
       </CardContent>
       <CardFooter
         className="hover:bg-amber-800 cursor-pointer flex items-center justify-center gap-x-2 bg-amber-400 py-2 rounded-b-md"
-        onClick={() => speak(question)}
+        onClick={() => speak(referenceAnswer)}
       >
         <span className="text-slate-100 font-bold">再听一次</span>
         <Volume2 className="stroke-slate-100" />

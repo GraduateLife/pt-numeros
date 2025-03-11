@@ -1,5 +1,6 @@
 import { historyStorage } from "@/app/storage/history";
-import { isAnswerCorrect } from "@/lib/utils";
+
+import { isAnswerCorrect } from "@/components/NumberGame/number-game";
 import { useCallback, useMemo } from "react";
 import { SkipSSR } from "../Common/SkipSSR";
 import { useConfettiSideCannons } from "../Common/useConfettiSideCannons";
@@ -19,7 +20,7 @@ const AccuracyIndicatorCore = () => {
   const history = historyStorage.getHistory();
   const totalAttempts = history.length;
   const correctAnswers = history.filter((entry) =>
-    isAnswerCorrect(String(entry.input), Number(entry.answer)),
+    isAnswerCorrect(String(entry.userInput), String(entry.referenceAnswer)),
   ).length;
   const correctRate = useMemo(
     () => calculateCorrectRate(totalAttempts, correctAnswers).rate,
