@@ -256,7 +256,7 @@ export default function GameEndPage() {
           className="mt-4 w-full max-w-2xl"
           onClick={() => {
             historyStorage.clearHistory();
-            restLifeStorage.clearLives();
+            restLifeStorage.clearLives(LetsPlayNumberGame.livesKey);
             router.push(`/`);
           }}
         >

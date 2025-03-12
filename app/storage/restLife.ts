@@ -46,7 +46,7 @@ export const restLifeStorage = {
     }
   },
 
-  clearLives: (livesKey: string, settingKey: string): void => {
+  clearLives: (livesKey: string): void => {
     if (typeof window === "undefined") return;
     localStorage.removeItem(livesKey);
   },

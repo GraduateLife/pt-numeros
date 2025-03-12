@@ -50,12 +50,7 @@ export const useGame = ({
       default:
         throw new Error("Invalid mode");
     }
-  }, [
-    gameMode,
-    settings[GameMode.OneByOne].timeLimit,
-    settings[GameMode.TillCrash].timeLimit,
-    settings[GameMode.Timed].timeLimit,
-  ]);
+  }, [gameMode, settings]);
 
   const {
     data: question,
@@ -71,11 +66,11 @@ export const useGame = ({
 
   const navigateToEndPage = useCallback(() => {
     router.replace(`/${gameName}/${gameMode}/end`);
-  }, [router, gameMode]);
+  }, [router, gameMode, gameName]);
 
   const navigateToNextRound = useCallback(() => {
     router.replace(`/${gameName}/${gameMode}?round=${Number(round) + 1}`);
-  }, [router, gameMode, round]);
+  }, [router, gameMode, round, gameName]);
 
   const handleTimeout = () => {
     if (gameMode === GameMode.TillCrash) {
@@ -124,10 +119,7 @@ export const useGame = ({
               restLifeStorage.isDead(GameClass.livesKey, GameClass.settingKey)
             ) {
               navigateToEndPage();
-              restLifeStorage.clearLives(
-                GameClass.livesKey,
-                GameClass.settingKey,
-              );
+              restLifeStorage.clearLives(GameClass.livesKey);
             } else {
               navigateToNextRound();
               refetch();
@@ -151,13 +143,21 @@ export const useGame = ({
     navigateToEndPage,
     navigateToNextRound,
     refetch,
+    setUserInput,
+    validateInput,
+    GameClass,
   ]);
 
   useEffect(() => {
     if (instantCheckMode && userInput.length === instantTriggerInputLength) {
       handleCheckAnswer();
     }
-  }, [userInput, instantCheckMode, handleCheckAnswer]);
+  }, [
+    userInput,
+    instantCheckMode,
+    handleCheckAnswer,
+    instantTriggerInputLength,
+  ]);
 
   return {
     question,
