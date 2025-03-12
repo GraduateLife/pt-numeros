@@ -76,10 +76,10 @@ export const DropArea = ({
       >
         {items.length === 0 && <p className="text-gray-500">拖放题目到这里</p>}
         {items.length > 0 && (
-          <div className="grid xl:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-1">
+          <div className="grid xl:grid-cols-4 md:grid-cols-3 grid-cols-1 gap-1">
             {items.map((item) => (
               <DragWrapper
-                hoverClassName="ring-2 rounded-md ring-stone-200"
+                hoverClassName="ring-2 border-dashed rounded-md ring-green-200"
                 key={item[renderKey].toString()}
                 onDrop={(e) => {
                   try {

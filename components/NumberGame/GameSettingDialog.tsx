@@ -10,30 +10,44 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTimeout } from "@/lib/useTimeout";
 import { Settings } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import InformationTooltip from "../Common/InfomationTooltip";
+import ResetButton from "../Common/ResetButton";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { GameMode, GameModeZh } from "./constants";
+interface GameModeSettings {
+  [GameMode.OneByOne]: {
+    timeLimit: number;
+  };
+  [GameMode.TillCrash]: {
+    timeLimit: number;
+    lives: number;
+  };
+  [GameMode.Timed]: {
+    timeLimit: number;
+  };
+}
 
-export interface GameSettings {
+export interface GameSettings extends GameModeSettings {
   general: {
     minNumber: number;
     maxNumber: number;
     defaultInstantCheckMode: boolean;
   };
-  oneByOne: {
-    timeLimit: number;
-  };
-  tillCrash: {
-    timeLimit: number;
-    lives: number;
-  };
-  timed: {
-    timeLimit: number;
-  };
+  // oneByOne: {
+  //   timeLimit: number;
+  // };
+  // tillCrash: {
+  //   timeLimit: number;
+  //   lives: number;
+  // };
+  // timed: {
+  //   timeLimit: number;
+  // };
 }
 
 interface GameSettingsDialogProps {
@@ -78,10 +92,16 @@ export default function GameSettingsDialog({
     toast.success("设置已保存");
   };
 
+  const { reset: closeWithDelay } = useTimeout(() => {
+    setOpen(false);
+  }, 1000);
+
   const handleReset = () => {
     onSettingsReset();
     toast.success("设置已重置");
-    setOpen(false);
+    setTimeout(() => {
+      closeWithDelay();
+    }, 300);
   };
 
   return (
@@ -182,10 +202,10 @@ export default function GameSettingsDialog({
                 type="number"
                 min={1}
                 max={3600}
-                value={tempSettings.oneByOne.timeLimit}
+                value={tempSettings[GameMode.OneByOne].timeLimit}
                 onChange={(e) =>
                   updateSettings(
-                    "oneByOne",
+                    GameMode.OneByOne,
                     "timeLimit",
                     Number(e.target.value),
                     { min: 1, max: 3600 },
@@ -205,10 +225,10 @@ export default function GameSettingsDialog({
                 type="number"
                 min={1}
                 max={300}
-                value={tempSettings.tillCrash.timeLimit}
+                value={tempSettings[GameMode.TillCrash].timeLimit}
                 onChange={(e) =>
                   updateSettings(
-                    "tillCrash",
+                    GameMode.TillCrash,
                     "timeLimit",
                     Number(e.target.value),
                     { min: 1, max: 300 },
@@ -223,12 +243,14 @@ export default function GameSettingsDialog({
                 type="number"
                 min={1}
                 max={10}
-                value={tempSettings.tillCrash.lives}
+                value={tempSettings[GameMode.TillCrash].lives}
                 onChange={(e) =>
-                  updateSettings("tillCrash", "lives", Number(e.target.value), {
-                    min: 1,
-                    max: 10,
-                  })
+                  updateSettings(
+                    GameMode.TillCrash,
+                    "lives",
+                    Number(e.target.value),
+                    { min: 1, max: 10 },
+                  )
                 }
               />
             </div>
@@ -242,12 +264,14 @@ export default function GameSettingsDialog({
                 type="number"
                 min={1}
                 max={3600}
-                value={tempSettings.timed.timeLimit}
+                value={tempSettings[GameMode.Timed].timeLimit}
                 onChange={(e) =>
-                  updateSettings("timed", "timeLimit", Number(e.target.value), {
-                    min: 1,
-                    max: 3600,
-                  })
+                  updateSettings(
+                    GameMode.Timed,
+                    "timeLimit",
+                    Number(e.target.value),
+                    { min: 1, max: 3600 },
+                  )
                 }
               />
             </div>
@@ -258,9 +282,12 @@ export default function GameSettingsDialog({
             <Button variant="outline" onClick={() => setOpen(false)}>
               取消
             </Button>
-            <Button variant="outline" onClick={handleReset}>
-              重置
-            </Button>
+            <ResetButton
+              onReset={handleReset}
+              inactiveText={"按住按钮以重置设置"}
+              holdingText={(remainingSeconds) => `还剩 ${remainingSeconds} 秒!`}
+              completedText={"已重置"}
+            />
             <Button onClick={handleConfirm}>确认</Button>
           </div>
         </DialogFooter>

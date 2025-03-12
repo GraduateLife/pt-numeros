@@ -1,10 +1,4 @@
 export enum GameMode {
-  OneByOne = "oneByOne",
-  TillCrash = "tillCrash",
-  Timed = "timed",
-}
-
-export enum GameModeParam {
   OneByOne = "one-by-one",
   TillCrash = "till-crash",
   Timed = "timed",
@@ -33,7 +27,7 @@ export function toKebabCase(str: string): string {
 }
 
 export const GameModeZh = {
-  [GameMode.OneByOne]: "先来一题",
-  [GameMode.TillCrash]: "Forge模式",
-  [GameMode.Timed]: "计时答题",
+  "one-by-one": "先来一题",
+  "till-crash": "生存模式",
+  timed: "计时答题",
 } as const;

@@ -1,4 +1,4 @@
-import { isAnswerCorrect } from "@/components/NumberGame/number-game";
+import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
 import { speak } from "@/lib/speak";
 import { cn } from "@/lib/utils";
 import { Volume2 } from "lucide-react";
@@ -22,7 +22,7 @@ export const GameSummeryCard = ({
     if (userInput === "") {
       return null;
     }
-    if (isAnswerCorrect(userInput, referenceAnswer)) {
+    if (LetsPlayNumberGame.isAnswerCorrect(userInput, referenceAnswer)) {
       return true;
     }
     return false;
@@ -43,7 +43,7 @@ export const GameSummeryCard = ({
         );
       }}
       className={cn(
-        "w-[220px] min-w-[110px] text-center border rounded-lg select-none max-w-[420px] cursor-move",
+        "min-w-[110px] text-center border rounded-lg select-none max-w-[200px] cursor-move",
         (answerCondition === false || answerCondition === null) &&
           "bg-red-100 border-red-600",
         answerCondition === true && "bg-green-100 border-green-600",

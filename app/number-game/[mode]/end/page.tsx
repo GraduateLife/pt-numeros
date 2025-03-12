@@ -3,7 +3,7 @@ import { GameHistory, historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
 import { DropArea } from "@/components/Common/DropArea";
 import { AccuracyIndicator } from "@/components/NumberGame/AccuracyIndicator";
-import { isAnswerCorrect } from "@/components/NumberGame/number-game";
+import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
 import { GameSummeryCard } from "@/components/Summery/GameSummeryCard";
 import { QuickSortDialog } from "@/components/Summery/QuickSortDialog";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 const historiesToQuestion = (history: GameHistory[]): QuestionSummary[] => {
   const res = history.map((item, index) =>
-    generateQuestionSummary(item, index + 1, isAnswerCorrect),
+    generateQuestionSummary(
+      item,
+      index + 1,
+      LetsPlayNumberGame.isAnswerCorrect,
+    ),
   );
   return res;
 };
@@ -150,7 +154,7 @@ export default function GameEndPage() {
 
   return (
     <div className="min-h-[90vh] p-6 w-full flex flex-col items-center justify-center py-8 select-none">
-      <AccuracyIndicator />
+      <AccuracyIndicator isAnswerCorrect={LetsPlayNumberGame.isAnswerCorrect} />
       <div className="mt-4 flex flex-col items-center gap-4 w-full max-w-7xl">
         <div className="self-start flex justify-between w-full items-center">
           <span className="text-sm text-gray-500">

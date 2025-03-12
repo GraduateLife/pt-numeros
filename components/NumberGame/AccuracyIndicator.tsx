@@ -1,6 +1,5 @@
 import { historyStorage } from "@/app/storage/history";
 
-import { isAnswerCorrect } from "@/components/NumberGame/number-game";
 import { useCallback, useMemo } from "react";
 import { SkipSSR } from "../Common/SkipSSR";
 import { useConfettiSideCannons } from "../Common/useConfettiSideCannons";
@@ -16,7 +15,11 @@ const calculateCorrectRate = (
   };
 };
 
-const AccuracyIndicatorCore = () => {
+const AccuracyIndicatorCore = ({
+  isAnswerCorrect,
+}: {
+  isAnswerCorrect: (userInput: string, referenceAnswer: string) => boolean;
+}) => {
   const history = historyStorage.getHistory();
   const totalAttempts = history.length;
   const correctAnswers = history.filter((entry) =>
@@ -54,10 +57,14 @@ const AccuracyIndicatorCore = () => {
   );
 };
 
-export const AccuracyIndicator = () => {
+export const AccuracyIndicator = ({
+  isAnswerCorrect,
+}: {
+  isAnswerCorrect: (userInput: string, referenceAnswer: string) => boolean;
+}) => {
   return (
     <SkipSSR fallback={<span>计算中...</span>}>
-      <AccuracyIndicatorCore />
+      <AccuracyIndicatorCore isAnswerCorrect={isAnswerCorrect} />
     </SkipSSR>
   );
 };
