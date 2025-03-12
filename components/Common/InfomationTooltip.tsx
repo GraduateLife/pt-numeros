@@ -9,7 +9,6 @@ import React from "react";
 
 interface InformationTooltipProps {
   text: string;
-  side?: "top" | "bottom" | "left" | "right";
   className?: string;
   size?: number;
 }
