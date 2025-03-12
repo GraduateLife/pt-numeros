@@ -60,7 +60,7 @@ def scrape_card_definitions(word: str) -> Dict[str, List[str]]:
 
 def main():
     try:
-        word = 'xícara'
+        word = 'ver'
         result = scrape_card_definitions(word)
         
         # Create output directory if it doesn't exist

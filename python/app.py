@@ -9,6 +9,7 @@ import asyncio
 from functools import partial, lru_cache
 import time
 
+
 sys.path.append(str(Path(__file__).parent / "scratchers"))
 
 # Import existing scrapers
@@ -20,6 +21,8 @@ from original_verb import scrape_priberam_origin
 from has_conjugation import check_conjugation_availability
 from definition import scrape_priberam_dictionary
 from phrases import scrape_priberam_phrases
+from card_definition import scrape_card_definitions
+from forma import scrape_word_forms
 
 app = FastAPI(title="Portuguese Verb Conjugation API")
 
@@ -59,6 +62,11 @@ class Phrase(BaseModel):
 class PhraseResponse(BaseModel):
     word: str
     phrases: List[Phrase] = []
+    error: Optional[str] = None
+
+class FormaResponse(BaseModel):
+    word: str
+    forma: List[str] = []
     error: Optional[str] = None
 
 # Add a simple rate limiter
@@ -132,10 +140,21 @@ async def get_conjugations(verb: str):
 
         original_form, normal, imperativo, condicional, outros = results
         
+        # Handle potential error in original_form
+        if "error" in original_form:
+            return {
+                "verb": verb,
+                "conjugations": {},
+                "has_conjugation": False,
+                "error": original_form["error"]
+            }
+        
         # Start with the original form data
-        result = original_form
-        result['has_conjugation'] = True
-        result['conjugations'] = normal['conjugations']
+        result = {
+            "verb": original_form["original_word"] or verb,
+            "has_conjugation": True,
+            "conjugations": normal['conjugations']
+        }
         
         # Add Imperativo
         if 'Imperativo' in imperativo:
@@ -155,7 +174,7 @@ async def get_conjugations(verb: str):
                 }]
             }
         if 'Particípio Passado' in outros:
-            result['conjugations']['Particípio_Passado'] = {
+            result['conjugations']['Particípio Passado'] = {
                 'Presente': [{
                     'conjugation': outros['Particípio Passado']
                 }]
@@ -175,13 +194,14 @@ async def get_definitions(word: str):
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, scrape_priberam_dictionary, word)
         
-        if not result['definitions']:
-            return {
-                "word": word,
-                "definitions": [],
-                "error": "No definitions found for this word"
-            }
-            
+        # If we got a result but definitions array is empty, try card definitions
+        if result["error"] is None and len(result["definitions"][0]["definitions"])==0:
+            print("No definitions found, trying card definitions")
+            card_result = scrape_card_definitions(word)
+            if card_result["definitions"]:
+                # Use the category that was already fetched in the original result
+                result["definitions"][0]["definitions"] = card_result["definitions"]
+        
         return result
             
     except Exception as e:
@@ -237,6 +257,31 @@ async def get_phrases(word: str):
             "phrases": phrases,
             "error": None
         }
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/forma/{word}", response_model=FormaResponse)
+async def get_word_forms(word: str):
+    """
+    Get alternative forms for a Portuguese word
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        await rate_limiter.acquire()
+        result = await loop.run_in_executor(
+            None, 
+            partial(cache_scraping_result, word, scrape_word_forms)
+        )
+        
+        if not result['forma']:
+            return {
+                "word": word,
+                "forma": [],
+                "error": "Could not find this word form"
+            }
+            
+        return result
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

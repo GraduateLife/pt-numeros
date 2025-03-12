@@ -69,11 +69,9 @@ def scrape_priberam_dictionary(word: str, justCategory: bool = False) -> Dict[st
                     for content in def_text.contents:
                     
                         if isinstance(content, str):
-                            print('in instance')
                             definition_parts.append(content.strip())
                             
                         elif content.name == 'aao':
-                            print('in aao')
                             # First try to get word spans
                             word_spans = content.select('.word')
                             if word_spans:
@@ -82,10 +80,7 @@ def scrape_priberam_dictionary(word: str, justCategory: bool = False) -> Dict[st
                                 # If no word spans, get the direct text content
                                 definition_parts.append(content.get_text(strip=True))
                         elif content.name == 'i':
-                            print('in i')
                             definition_parts.append(content.get_text(strip=True))
-                        else:
-                            print('in else')
                             
                     
                     definition = ' '.join(part for part in definition_parts if part)
@@ -93,8 +88,8 @@ def scrape_priberam_dictionary(word: str, justCategory: bool = False) -> Dict[st
                         current_definitions.append(definition)
             else:
                 if element.name == 'div' and 'dp-definicao-cartao' in element.get('class', []):
-                    print('in dp-definicao-cartao')
-                    
+                    # print('in dp-definicao-cartao')
+                    pass
         
         if current_category and not justCategory:
             definitions_by_category[current_category].extend(current_definitions)
@@ -132,7 +127,7 @@ def scrape_priberam_dictionary(word: str, justCategory: bool = False) -> Dict[st
 
 def main():
     try:
-        word = 'autocarro'
+        word = 'xícara'
         # Get the dictionary data
         result = scrape_priberam_dictionary(word)
         

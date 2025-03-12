@@ -39,8 +39,8 @@ def scrape_priberam_origin(verb: str) -> Dict[str, Optional[str]]:
         verb_text = verb_element.get_text(strip=True) if verb_element else None
         
         return {
-            "verb": verb_text,
-            "original_query": verb
+            "original_word": verb_text,
+            "query": verb
         }
         
     except requests.RequestException as e:
