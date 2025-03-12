@@ -8,26 +8,29 @@ import os
 from constants import (
     DEFAULT_HEADERS,
     BASE_URL,
+    DEFAULT_PARSER
 )
 
 
 
-def scrape_priberam_dictionary(word: str) -> Dict[str, List[Dict[str, str]]]:
+def scrape_priberam_dictionary(word: str, justCategory: bool = False) -> Dict[str, List[Dict[str, str]]]:
     """
     Scrape definitions from Priberam dictionary
     
     Args:
         word: The word to look up
+        justCategory: If True, only return category information without definitions
         
     Returns:
         Dictionary containing word and its definitions grouped by category
     """
     try:
-        url = f"{BASE_URL}/{word}"
+        encoded_word = requests.utils.quote(word)
+        url = f"{BASE_URL}/{encoded_word}"
         response = requests.get(url, headers=DEFAULT_HEADERS)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         definitions_by_category = defaultdict(list)
         
         definition_div = soup.select_one('.dp-definicao')
@@ -36,36 +39,73 @@ def scrape_priberam_dictionary(word: str) -> Dict[str, List[Dict[str, str]]]:
             
         current_category = None
         current_definitions = []
+        categories = []  # New list to store just categories
         
         for element in definition_div.find_all(['h4', 'div']):
             # Only process h4 elements that have the 'varpt' class
+            # print(element)
             if element.name == 'h4':
                 if not element.get('class') or 'varpt' not in element.get('class'):
                     continue
                 
-                # If we have a previous category, save its definitions
-                if current_category:
-                    
+                if current_category and not justCategory:
                     definitions_by_category[current_category].extend(current_definitions)
-                
-                # Extract text from the span element inside h4
                 category_span = element.select_one('span')
-                
                 current_category = category_span.get_text(strip=True) if category_span else element.get_text(strip=True)
-                current_definitions = []
+                if justCategory:
+                    categories.append(current_category)
+                else:
+                    current_definitions = []
                 
-            elif element.name == 'div' and 'dp-definicao-linha' in element.get('class', []):
+            elif not justCategory and element.name == 'div' and 'dp-definicao-linha' in element.get('class', []):
+                # Check if there's a span with a number at the start
+                number_span = element.select_one('.--pequeno')
+                if not number_span or not number_span.get_text(strip=True).replace('.', '').isdigit():
+                    continue
+                    
                 def_text = element.select_one('.def')
                 if def_text:
-                    # Use separator=' ' to preserve spaces between text nodes
-                    definition = def_text.get_text(separator=' ', strip=True)
-                    if not definition.startswith('•'):
+                    definition_parts = []
+                    for content in def_text.contents:
+                    
+                        if isinstance(content, str):
+                            print('in instance')
+                            definition_parts.append(content.strip())
+                            
+                        elif content.name == 'aao':
+                            print('in aao')
+                            # First try to get word spans
+                            word_spans = content.select('.word')
+                            if word_spans:
+                                definition_parts.extend(span.get_text(strip=True) for span in word_spans)
+                            else:
+                                # If no word spans, get the direct text content
+                                definition_parts.append(content.get_text(strip=True))
+                        elif content.name == 'i':
+                            print('in i')
+                            definition_parts.append(content.get_text(strip=True))
+                        else:
+                            print('in else')
+                            
+                    
+                    definition = ' '.join(part for part in definition_parts if part)
+                    if definition:
                         current_definitions.append(definition)
+            else:
+                if element.name == 'div' and 'dp-definicao-cartao' in element.get('class', []):
+                    print('in dp-definicao-cartao')
+                    
         
-        # Add the last category's definitions
-        if current_category:
+        if current_category and not justCategory:
             definitions_by_category[current_category].extend(current_definitions)
         
+        if justCategory:
+            return {
+                "word": word,
+                "categories": categories,
+                "error": None
+            }
+            
         definitions = [
             {
                 "category": category,
@@ -83,7 +123,8 @@ def scrape_priberam_dictionary(word: str) -> Dict[str, List[Dict[str, str]]]:
     except requests.RequestException as e:
         return {
             "word": word,
-            "definitions": [],
+            "definitions": [] if not justCategory else [],
+            "categories": [] if justCategory else None,
             "error": f"Failed to fetch definition for '{word}': {str(e)}"
         }
 
@@ -91,7 +132,7 @@ def scrape_priberam_dictionary(word: str) -> Dict[str, List[Dict[str, str]]]:
 
 def main():
     try:
-        word = 'viu'
+        word = 'autocarro'
         # Get the dictionary data
         result = scrape_priberam_dictionary(word)
         

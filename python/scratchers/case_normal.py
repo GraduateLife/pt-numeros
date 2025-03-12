@@ -5,7 +5,7 @@ from typing import Dict, List
 import json
 import os
 
-from constants import DEFAULT_RATE_LIMIT
+from constants import DEFAULT_RATE_LIMIT, DEFAULT_PARSER
 
 def scrape_priberam_conjugations(verb: str) -> Dict[str, Dict[str, List[str]]]:
     """
@@ -31,7 +31,7 @@ def scrape_priberam_conjugations(verb: str) -> Dict[str, Dict[str, List[str]]]:
         response.raise_for_status()
         
         # Parse the HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         
         conjugations = {}
 

@@ -4,7 +4,7 @@ import time
 from typing import Dict, Optional
 import json
 import os
-from constants import DEFAULT_RATE_LIMIT
+from constants import DEFAULT_RATE_LIMIT, DEFAULT_PARSER
 def scrape_priberam_origin(verb: str) -> Dict[str, Optional[str]]:
     """
     Scrape verb origin information from Priberam
@@ -29,7 +29,7 @@ def scrape_priberam_origin(verb: str) -> Dict[str, Optional[str]]:
         response.raise_for_status()
         
         # Parse the HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         
         # Find the verb title section
         title_section = soup.select_one('div.clearfix.pb-section-title.mb-32')

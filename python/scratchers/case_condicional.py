@@ -4,7 +4,7 @@ import time
 import json
 from typing import Dict, List
 import os
-from constants import DEFAULT_RATE_LIMIT
+from constants import DEFAULT_RATE_LIMIT, DEFAULT_PARSER
 
 def scrape_condicional(verb: str) -> Dict[str, List[Dict[str, str]]]:
     """
@@ -28,7 +28,7 @@ def scrape_condicional(verb: str) -> Dict[str, List[Dict[str, str]]]:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         
         # Find the Condicional wrapper
         condicional_wrapper = soup.find('div', class_='dp-wrap-conj__condicional')

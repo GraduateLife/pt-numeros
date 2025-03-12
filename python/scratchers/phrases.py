@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import os
 import json
-
+from constants import DEFAULT_PARSER
 def scrape_priberam_phrases(word: str) -> List[Dict[str, List[str]]]:
     """
     Scrapes phrases and their definitions from the Priberam dictionary page
@@ -13,18 +13,23 @@ def scrape_priberam_phrases(word: str) -> List[Dict[str, List[str]]]:
         List of dictionaries containing phrases and their definitions
     """
     try:
-        url = f"https://dicionario.priberam.org/{word}"
+        url = f"https://dicionario.priberam.org/{requests.utils.quote(word)}"
         response = requests.get(url)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         phrases_definitions = []
         
         # Find all phrase markers
-        phrase_markers = soup.find_all('h4', class_='mt-8 mb-4')
-        
+        phrase_markers = soup.find_all('h4', class_='mt-8 mb-4')        
         for i, marker in enumerate(phrase_markers):
-            phrase = marker.get_text(strip=True)
+            # Get text content with proper spacing
+            phrase = ' '.join(
+                text.strip() 
+                for text in marker.stripped_strings 
+                if text.strip()
+            )
+            
             definitions = []
             
             # Find the next marker or etymology section to know where to stop
@@ -43,13 +48,22 @@ def scrape_priberam_phrases(word: str) -> List[Dict[str, List[str]]]:
                 if next_marker and current.sourceline >= next_marker.sourceline:
                     break
                 
-                # Skip the bullet point span and get the remaining text
-                bullet_span = current.find('span', class_='ml-4 mr-8')
-                if bullet_span:
-                    bullet_span.extract()
-                definition = current.get_text(strip=True)
+                # Get the complete text content, including nested spans
+                definition = ''
+                for content in current.contents:
+                    if isinstance(content, str):
+                        definition += content
+                    elif content.name == 'span':
+                        definition += content.get_text(strip=True)
+                    elif content.name in ['i', 'b']:  # Handle italic and bold text
+                        definition += content.get_text(strip=True)
+                
+                definition = definition.strip().replace('•', '').strip()
                 if definition:
-                    definitions.append(definition)
+                    # Remove duplicate definitions
+                    if not definitions or definition != definitions[-1]:
+                        definitions.append(definition)
+                        
                 current = current.find_next('span', class_='def')
             
             if definitions:

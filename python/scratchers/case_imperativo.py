@@ -4,7 +4,7 @@ import time
 import json
 from typing import Dict, List
 import os
-from constants import DEFAULT_RATE_LIMIT
+from constants import DEFAULT_RATE_LIMIT, DEFAULT_PARSER
 def scrape_imperativo(verb: str) -> Dict[str, Dict[str, List[Dict[str, str]]]]:
     """
     Scrape only the Imperativo conjugations from Priberam
@@ -26,7 +26,7 @@ def scrape_imperativo(verb: str) -> Dict[str, Dict[str, List[Dict[str, str]]]]:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         result = {'Imperativo': {}}
         
         # Find the Imperativo wrapper

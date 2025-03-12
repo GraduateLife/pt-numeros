@@ -19,6 +19,7 @@ from case_outros import scrape_gerundio_participio
 from original_verb import scrape_priberam_origin
 from has_conjugation import check_conjugation_availability
 from definition import scrape_priberam_dictionary
+from phrases import scrape_priberam_phrases
 
 app = FastAPI(title="Portuguese Verb Conjugation API")
 
@@ -37,14 +38,32 @@ class ConjugationResponse(BaseModel):
     has_conjugation: bool
     error: Optional[str] = None
 
+class Definition(BaseModel):
+    category: str
+    definitions: List[str]
+
 class DefinitionResponse(BaseModel):
     word: str
-    definitions: List[Dict[str, str]] = []
+    definitions: List[Definition] = []
+    error: Optional[str] = None
+
+class CategoryResponse(BaseModel):
+    word: str
+    categories: List[str] = []
+    error: Optional[str] = None
+
+class Phrase(BaseModel):
+    phrase: str
+    definitions: List[str]
+
+class PhraseResponse(BaseModel):
+    word: str
+    phrases: List[Phrase] = []
     error: Optional[str] = None
 
 # Add a simple rate limiter
 class RateLimiter:
-    def __init__(self, rate_limit=0.3, concurrent_limit=3):  # Allow 3 concurrent requests
+    def __init__(self, rate_limit=0.5, concurrent_limit=5):  # Allow 3 concurrent requests
         self.rate_limit = rate_limit
         self.last_requests = []  # Track timestamps of recent requests
         self.lock = asyncio.Lock()
@@ -102,8 +121,8 @@ async def get_conjugations(verb: str):
         ]
 
         results = []
-        for i in range(0, len(scrapers), 3):  # Process in groups of 3
-            group = scrapers[i:i+3]
+        for i in range(0, len(scrapers), 5):  # Process in groups of 3
+            group = scrapers[i:i+5]
             await rate_limiter.acquire()
             group_results = await asyncio.gather(
                 *(loop.run_in_executor(None, partial(cache_scraping_result, verb, func)) 
@@ -164,6 +183,60 @@ async def get_definitions(word: str):
             }
             
         return result
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/category/{word}", response_model=CategoryResponse)
+async def get_categories(word: str):
+    """
+    Get grammatical categories for a Portuguese word
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        await rate_limiter.acquire()
+        result = await loop.run_in_executor(
+            None, 
+            partial(cache_scraping_result, word, scrape_priberam_dictionary, True)  # Set justCategory=True
+        )
+        
+        if not result['categories']:
+            return {
+                "word": word,
+                "categories": [],
+                "error": "No categories found for this word"
+            }
+            
+        return result
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/phrases/{word}", response_model=PhraseResponse)
+async def get_phrases(word: str):
+    """
+    Get phrases and their definitions for a Portuguese word
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        await rate_limiter.acquire()
+        phrases = await loop.run_in_executor(
+            None, 
+            partial(cache_scraping_result, word, scrape_priberam_phrases)
+        )
+        
+        if not phrases:
+            return {
+                "word": word,
+                "phrases": [],
+                "error": "No phrases found for this word"
+            }
+            
+        return {
+            "word": word,
+            "phrases": phrases,
+            "error": None
+        }
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

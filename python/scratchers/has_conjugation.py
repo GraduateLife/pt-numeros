@@ -4,7 +4,7 @@ import time
 from typing import Dict, Optional
 import json
 import os
-from constants import DEFAULT_RATE_LIMIT
+from constants import DEFAULT_RATE_LIMIT, DEFAULT_PARSER
 def check_conjugation_availability(word: str) -> Dict[str, bool]:
     """
     Check if conjugations are available for a given word on Priberam
@@ -29,7 +29,7 @@ def check_conjugation_availability(word: str) -> Dict[str, bool]:
         response.raise_for_status()
         
         # Parse the HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, DEFAULT_PARSER)
         
         # Check for the alert message
         alert = soup.select_one('div.alert.alert-info')
