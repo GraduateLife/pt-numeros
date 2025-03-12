@@ -1,36 +1,48 @@
-import { Anvil, Pencil, Timer } from "lucide-react";
-import { Button } from "../ui/button";
-import { GameMode, GameModeZh } from "./constants";
+import { useRouter } from "next/navigation";
+import { GameMode, toKebabCase } from "./constants";
+import { GameModeButton } from "./GameModeButton";
 
 interface GameWaitingToStartScreenProps {
-  emitStartSignal: (mode: GameMode) => void;
+  allowedGameModes: GameMode[];
+  gameName: string;
 }
 
+const buildGameUrl = (whatGame: string, gameMode: GameMode) => {
+  const baseParams = new URLSearchParams({
+    round: "1",
+  });
+
+  switch (gameMode) {
+    case GameMode.OneByOne:
+      return `/${whatGame}/${toKebabCase(GameMode.OneByOne)}?${baseParams.toString()}`;
+    case GameMode.TillCrash:
+      return `/${whatGame}/${toKebabCase(GameMode.TillCrash)}?${baseParams.toString()}`;
+    case GameMode.Timed:
+      return `/${whatGame}/${toKebabCase(GameMode.Timed)}?${baseParams.toString()}`;
+    default:
+      throw new Error("This mode is not supported for this game");
+  }
+};
+
 export default function GameWaitingToStartScreen({
-  emitStartSignal,
+  allowedGameModes,
+  gameName,
 }: GameWaitingToStartScreenProps) {
+  const router = useRouter();
+  const handleStartGame = (mode: GameMode) => {
+    router.push(buildGameUrl(gameName, mode));
+  };
   return (
-    <div className="space-y-4">
-      <div className="flex gap-2">
-        <Button
-          className="flex-1"
-          onClick={() => emitStartSignal(GameMode.OneByOne)}
-        >
-          <Pencil className="mr-2" />「{GameModeZh[GameMode.OneByOne]}」
-        </Button>
+    <div className="space-y-4 mt-4">
+      <div className="flex flex-col gap-2">
+        {allowedGameModes.map((mode) => (
+          <GameModeButton
+            key={mode}
+            modeName={mode}
+            handleStartGame={handleStartGame}
+          />
+        ))}
       </div>
-      <Button
-        onClick={() => emitStartSignal(GameMode.TillCrash)}
-        className="w-full"
-      >
-        <Anvil className="mr-2" />「{GameModeZh[GameMode.TillCrash]}」
-      </Button>
-      <Button
-        onClick={() => emitStartSignal(GameMode.Timed)}
-        className="w-full"
-      >
-        <Timer className="mr-2" />「{GameModeZh[GameMode.Timed]}」
-      </Button>
     </div>
   );
 }

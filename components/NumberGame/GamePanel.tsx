@@ -1,178 +1,61 @@
 "use client";
 
-import { historyStorage } from "@/app/storage/history";
-import { restLifeStorage } from "@/app/storage/restLife";
 import { settingsStorage } from "@/app/storage/settings";
-import {
-  generateQuestion,
-  isAnswerCorrect,
-} from "@/components/NumberGame/number-game";
+import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
 import { speak } from "@/lib/speak";
-import { useQuery } from "@tanstack/react-query";
 import { Hand, Volume2 } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { DigitInput } from "../Common/DigitInput";
 import SpinnerCountDown from "../Common/SpinnerCountDown";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { GameMode, GameModeParam, toKebabCase } from "./constants";
+import { GameMode } from "./constants";
+import { useGame } from "./useGame";
 
 export default function GamePanel() {
-  const { mode: modeParam } = useParams<{ mode: GameModeParam }>();
+  const settings = settingsStorage.getSettings(
+    LetsPlayNumberGame.settingKey,
+    LetsPlayNumberGame.defaultSettings,
+  );
 
-  const gameMode = useMemo(() => {
-    switch (modeParam) {
-      case GameModeParam.OneByOne:
-        return GameMode.OneByOne;
-      case GameModeParam.TillCrash:
-        return GameMode.TillCrash;
-      case GameModeParam.Timed:
-        return GameMode.Timed;
-      default:
-        throw new Error("Invalid mode");
-    }
-  }, [modeParam]);
-
-  const settings = settingsStorage.getSettings();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const round = searchParams.get("round");
   const [instantCheckMode, setInstantCheckMode] = useState(
     settings.general.defaultInstantCheckMode,
   );
   const [userInput, setUserInput] = useState("");
 
-  const minNumber = settings.general.minNumber;
-  const maxNumber = settings.general.maxNumber;
-
-  const givenSeconds = useMemo(() => {
-    switch (gameMode) {
-      case GameMode.OneByOne:
-        return settings.oneByOne.timeLimit;
-      case GameMode.TillCrash:
-        return settings.tillCrash.timeLimit;
-      case GameMode.Timed:
-        return settings.timed.timeLimit;
-      default:
-        throw new Error("Invalid mode");
-    }
-  }, [
-    gameMode,
-    settings.oneByOne.timeLimit,
-    settings.tillCrash.timeLimit,
-    settings.timed.timeLimit,
-  ]);
-
-  const {
-    data: question,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["question", minNumber, maxNumber],
-    queryFn: () => generateQuestion(minNumber, maxNumber),
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnMount: true,
-  });
-
-  const navigateToEndPage = useCallback(() => {
-    router.replace(`/number-game/${modeParam}/end`);
-  }, [router, modeParam]);
-
-  const navigateToNextRound = useCallback(() => {
-    router.replace(`/number-game/${modeParam}?round=${Number(round) + 1}`);
-  }, [router, modeParam, round]);
-
-  const handleTimeout = () => {
-    if (modeParam === toKebabCase(GameModeParam.TillCrash)) {
-      handleCheckAnswer();
-    } else {
-      const validatedInput = validateInput(userInput);
-      historyStorage.appendHistory(
-        validatedInput,
-        gameMode,
-        question!.referenceAnswer,
-        question!.questionId,
-      );
-      navigateToEndPage();
-    }
-  };
-  const handleGiveUp = () => {
-    handleCheckAnswer();
-  };
-
   const validateInput = (value: string) => {
     if (!value) return "";
     const normalizedValue = value.replace(/^0+/, "") || "0";
     const res = Number(normalizedValue);
-
     if (isNaN(res)) {
       toast.error("这不是一个数字!");
-      return "";
+      return "不允许的输入";
     }
     return normalizedValue;
   };
 
-  const handleCheckAnswer = useCallback(() => {
-    const validatedInput = validateInput(userInput);
-    historyStorage.appendHistory(
-      validatedInput,
-      gameMode,
-      question!.referenceAnswer,
-      question!.questionId,
-    );
-
-    try {
-      switch (gameMode) {
-        case GameMode.OneByOne:
-          navigateToEndPage();
-          break;
-        case GameMode.TillCrash:
-          if (isAnswerCorrect(validatedInput, question!.referenceAnswer)) {
-            navigateToNextRound();
-            refetch();
-          } else {
-            restLifeStorage.reduceLife();
-            if (restLifeStorage.isDead()) {
-              navigateToEndPage();
-              restLifeStorage.clearLives();
-            } else {
-              navigateToNextRound();
-              refetch();
-            }
-          }
-          break;
-        case GameMode.Timed:
-          navigateToNextRound();
-          refetch();
-          break;
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setUserInput("");
-    }
-  }, [
-    userInput,
-    modeParam,
+  const {
+    isLoading,
+    givenSeconds,
+    handleCheckAnswer,
+    handleGiveUp,
+    handleTimeout,
     question,
+    round,
     gameMode,
-    navigateToEndPage,
-    navigateToNextRound,
-    refetch,
-  ]);
-
-  useEffect(() => {
-    if (instantCheckMode && userInput.length === 3) {
-      handleCheckAnswer();
-    }
-  }, [userInput, instantCheckMode, handleCheckAnswer]);
+  } = useGame({
+    GameClass: LetsPlayNumberGame,
+    validateInput: validateInput,
+    userInput: userInput,
+    setUserInput: setUserInput,
+    instantCheckMode: instantCheckMode,
+    instantTriggerInputLength: 3,
+  });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>生成题目中...</div>;
   }
 
   return (
@@ -181,7 +64,7 @@ export default function GamePanel() {
       <div className="flex justify-center">
         <SpinnerCountDown
           duration={givenSeconds}
-          key={modeParam !== toKebabCase(GameMode.Timed) ? round : undefined}
+          key={gameMode !== GameMode.Timed ? round : undefined}
           onComplete={handleTimeout}
         />
       </div>
@@ -233,7 +116,7 @@ export default function GamePanel() {
         >
           提交答案
         </Button>
-        {modeParam === toKebabCase(GameMode.Timed) && (
+        {gameMode === GameMode.Timed && (
           <Button
             variant={"confirm"}
             onClick={() => handleTimeout()}
