@@ -60,7 +60,7 @@ export default function SearchComponent<T>({
   };
 
   const DefaultLoadingCard = () => (
-    <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+    <div className="rounded-lg border bg-card px-4 text-card-foreground shadow-sm">
       <div className="flex items-center justify-center space-x-2">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Loading...</span>
@@ -71,7 +71,7 @@ export default function SearchComponent<T>({
   const LoadingComponent = LoadingCard || DefaultLoadingCard;
 
   return (
-    <div className="flex flex-col p-3 border rounded-lg h-[var(--panel-first-line-shrink-height)]">
+    <div className="h-[var(--search-component-height)] flex flex-col rounded-b-lg p-2 border border-t-0 ">
       <AutoResizeTextareaForm
         placeholder={placeholder}
         emitSubmit={handleSubmit}
@@ -79,12 +79,8 @@ export default function SearchComponent<T>({
         submitButtonIcon={submitButtonIcon}
         isLoading={isLoading}
       />
-      {error instanceof Error && (
-        <div className="mt-3 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-          {error.message}
-        </div>
-      )}
-      <div className="flex-1 mt-3">
+
+      <div className="flex-1 mt-1">
         {isLoading && <LoadingComponent />}
         {result && <ResultCard result={result} />}
         {!isLoading && !result && (

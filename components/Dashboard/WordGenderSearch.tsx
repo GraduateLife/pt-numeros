@@ -54,12 +54,12 @@ function WordGenderResultCard({ result }: { result: WordGenderResult }) {
       return result.error;
     };
     return (
-      <div className="h-full rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2">
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-1">
         <div className="h-full flex flex-col items-center justify-between gap-2">
           <span className="text-sm text-destructive">
             没有找到单词"{result.word}"的性别, 因为{handleError(result)}.
           </span>
-          <TriangleAlert className="flex-1 size-28 stroke-1 text-destructive" />
+          <TriangleAlert className="flex-1 size-20 stroke-1 text-destructive" />
           <span className="flex items-center justify-center text-sm text-destructive">
             <Link
               href={`https://dicionario.priberam.org/${result.word}`}
@@ -96,7 +96,7 @@ function WordGenderResultCard({ result }: { result: WordGenderResult }) {
 
 function LoadingCard() {
   return (
-    <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+    <div className="h-full rounded-lg bg-card p-4 text-card-foreground shadow-sm">
       <div className="flex items-center justify-center space-x-2">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         <span className="text-sm text-muted-foreground">

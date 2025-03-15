@@ -165,5 +165,6 @@
 }
 
 :root {
-  --panel-first-line-shrink-height: 40vh;
+  --panel-first-line-shrink-height: 35vh;
+  --search-component-height: 31vh;
 }

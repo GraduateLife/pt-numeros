@@ -3,10 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Pencil, Plus, RotateCcw, X } from "lucide-react";
+import { Check, Pencil, Plus, RotateCcw, Sparkles, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 interface Todo {
   id: number;
@@ -29,7 +36,7 @@ export function TodoIsland() {
 
   const addTodo = () => {
     if (newTodo.trim() !== "") {
-      setTodos([...todos, { id: Date.now(), text: newTodo, completed: false }]);
+      setTodos([{ id: Date.now(), text: newTodo, completed: false }, ...todos]);
       setNewTodo("");
     }
   };
@@ -112,7 +119,7 @@ export function TodoIsland() {
             layout
           >
             <Plus className="size-4" />
-            <span>今天想做什么?</span>
+            <span>今天有什么想法?</span>
             <div className="flex items-center space-x-2 h-full">
               {remainingTodos > 0 && (
                 <span className="bg-emerald-500 text-white rounded-full w-6 h-6 min-w-[24px] flex items-center justify-center text-xs font-medium">
@@ -153,12 +160,33 @@ export function TodoIsland() {
                   />
                   <Pencil className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                 </div>
-                <Button
-                  onClick={addTodo}
-                  className="bg-[#111111] hover:bg-[#222222] text-gray-400 hover:text-gray-200 transition-colors h-10 px-3 border border-[#222222] rounded-lg"
-                >
-                  <Plus size={16} />
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={addTodo}
+                    className="bg-[#111111] hover:bg-[#222222] text-gray-400 hover:text-gray-200 transition-colors h-10 px-3 border border-[#222222] rounded-lg"
+                  >
+                    <Plus size={16} className="text-emerald-500" />
+                  </Button>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={addTodo}
+                          className="bg-[#111111] hover:bg-[#222222] text-gray-400 hover:text-gray-200 transition-colors h-10 px-3 border border-[#222222] rounded-lg"
+                        >
+                          <Sparkles
+                            size={16}
+                            className="fill-yellow-400 stroke-yellow-400"
+                          />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span>让 AI 帮你想一个</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
               <motion.ul
                 className="space-y-2 max-h-60 overflow-y-auto"
@@ -197,9 +225,9 @@ export function TodoIsland() {
                           aria-label={`${todo.completed ? "Revert" : "Complete"} "${todo.text}"`}
                         >
                           {todo.completed ? (
-                            <RotateCcw size={14} />
+                            <RotateCcw size={14} className="text-yellow-500" />
                           ) : (
-                            <Check size={14} />
+                            <Check size={14} className="text-emerald-500" />
                           )}
                         </Button>
                         <Separator
@@ -213,7 +241,7 @@ export function TodoIsland() {
                           className="h-10 px-3 text-gray-400 hover:text-gray-200 hover:bg-[#222222] rounded-none"
                           aria-label={`Remove "${todo.text}" from the list`}
                         >
-                          <X size={14} />
+                          <X size={14} className="text-red-500" />
                         </Button>
                       </div>
                     </motion.li>

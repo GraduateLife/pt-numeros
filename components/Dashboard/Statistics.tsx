@@ -36,14 +36,14 @@ export const Statistics = ({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Today's tasks */}
-        <StaticCard title="今天你做了">
+        <StaticCard title="今天完成事项" variant="dark">
           <p className="self-end sm:self-start text-2xl sm:text-3xl font-bold">
-            {todayTasks + " 件事"}
+            {todayTasks}
           </p>
         </StaticCard>
-        <StaticCard title="本月你做了" variant="light">
+        <StaticCard title="本月完成事项" variant="light">
           <p className="self-end sm:self-start text-2xl sm:text-3xl font-bold">
-            {monthlyTasks + " 件事"}
+            {monthlyTasks}
           </p>
         </StaticCard>
         <StaticCard title="学习趋势" variant="light">
@@ -112,7 +112,11 @@ const WeeklyReport = ({
   needReferenceLinesNumber = 4,
 }: WeeklyReportProps) => {
   // Calculate the maximum value from the data
-  const maxValue = Math.max(...chartData.map((item) => item.value));
+  const maxValue = Math.max(
+    ...chartData
+      .filter((item) => isThisWeek(item.date))
+      .map((item) => item.value),
+  );
   // Round up to the nearest multiple of 20 to get a nice max value
   const roundedMax = Math.ceil(maxValue / 20) * 20;
   // Create an array of reference line values
@@ -137,7 +141,8 @@ const WeeklyReport = ({
   });
 
   return (
-    <div>
+    <div className="mt-4">
+      <span className="text-sm text-gray-500">本周你的在线时长</span>
       <div className="h-56 mt-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={currentWeekData}>

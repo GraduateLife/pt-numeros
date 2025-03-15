@@ -2,7 +2,6 @@ import { cn, toWeekDay } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { TodoIsland } from "./TodoIsland";
-
 interface BomDiaProps {
   name?: string;
   className?: string;

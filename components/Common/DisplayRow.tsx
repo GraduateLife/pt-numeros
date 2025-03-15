@@ -7,6 +7,7 @@ interface LineProps {
   className?: string;
   children: React.ReactNode[];
   itemClassName?: string;
+  distrubuteByPart?: boolean;
 }
 
 export const DisplayLine = ({
@@ -15,6 +16,7 @@ export const DisplayLine = ({
   children,
   className,
   itemClassName,
+  distrubuteByPart = false,
 }: LineProps) => {
   return (
     <div className={cn(`w-full flex flex-col sm:flex-row`, className)}>
@@ -22,7 +24,8 @@ export const DisplayLine = ({
         <div
           key={`${keygen}-${i}`}
           className={cn(
-            "flex flex-col w-full h-[var(--part)] sm:h-full sm:w-[var(--part)]",
+            "flex flex-col w-full  sm:h-full sm:w-[var(--part)]",
+            distrubuteByPart ? "h-[var(--part)]" : "h-full",
             itemClassName,
           )}
           style={

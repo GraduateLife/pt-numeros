@@ -4,23 +4,21 @@ import { DisplayLine } from "../Common/DisplayRow";
 import { SkipSSR } from "../Common/SkipSSR";
 import { BomDia } from "./BomDia";
 import { GameList } from "./LetsPlay";
+import Profile from "./Profile";
 import { Statistics } from "./Statistics";
-import WordFormaSearch from "./WordFormaSearch";
-import WordGenderSearch from "./WordGenderSearch";
+import TabSearch from "./TabSearch";
 const sampleData = [
   { date: "2025-03-04", value: 10 },
   { date: "2025-03-05", value: 20 },
   { date: "2025-03-06", value: 15 },
   { date: "2025-03-07", value: 50 },
-  { date: "2025-03-08", value: 30 },
-  { date: "2025-03-09", value: 0 },
-  { date: "2025-03-10", value: 10 },
-  { date: "2025-03-11", value: 20 },
-
-  { date: "2025-03-14", value: 90 },
-  { date: "2025-03-15", value: 0 },
-  { date: "2025-03-16", value: 0 },
-  { date: "2025-03-17", value: 0 },
+  { date: "2025-03-08", value: 30 }, //1
+  { date: "2025-03-09", value: 0 }, //2
+  { date: "2025-03-10", value: 10 }, //3
+  { date: "2025-03-11", value: 120 }, //4
+  { date: "2025-03-14", value: 90 }, //5
+  { date: "2025-03-15", value: 180 }, //6
+  { date: "2025-03-16", value: 10 }, //7
 ];
 export const Panel = () => {
   return (
@@ -38,14 +36,16 @@ export const Panel = () => {
         >
           {[
             <BomDia key="bom-dia" />,
-            <WordFormaSearch key="word-forma-search" />,
-            <WordGenderSearch key="word-gender-search" />,
+            // <WordFormaSearch key="word-forma-search" />,
+            // <WordGenderSearch key="word-gender-search" />,
+            <TabSearch key="tab-search" />,
+            <Profile key="profile" />,
           ]}
         </DisplayLine>
         <DisplayLine
           className="flex-1 gap-2"
           keygen="what"
-          display={[1 / 2, 1 / 2]}
+          display={[3 / 5, 2 / 5]}
           itemClassName="rounded-lg bg-white shadow-md h-full"
         >
           {[
@@ -66,7 +66,7 @@ export const Panel = () => {
 };
 
 const VeryTop = () => {
-  return <>very top</>;
+  return <>{/* <OneLineCalender /> */}</>;
 };
 
 const Trace = () => {
