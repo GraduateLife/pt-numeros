@@ -47,12 +47,12 @@ export const GameModeButton = ({
   const { mode, label, icon, color } = modeDisplay;
   return (
     <Button
-      size={"icon"}
+      // size={"icon"}
       variant={"outline"}
       className={cn(className, color)}
       onClick={() => handleStartGame(mode)}
     >
-      {icon}
+      {icon} {label}
     </Button>
   );
 };

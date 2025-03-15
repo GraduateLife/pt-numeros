@@ -41,11 +41,11 @@ const SortableItem = ({
       <div
         {...attributes}
         {...listeners}
-        className="absolute left-2 cursor-grab active:cursor-grabbing flex items-center justify-center"
+        className="absolute cursor-grab active:cursor-grabbing flex items-center justify-center"
       >
         <GripVertical className="w-4 h-4 text-neutral-500 hover:text-neutral-700" />
       </div>
-      <div className="flex-1 pl-6">{children}</div>
+      <div className="flex-1 pl-4">{children}</div>
     </div>
   );
 };
@@ -76,7 +76,8 @@ export const GameList = () => {
     });
   };
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col bg-gray-100 dark:bg-neutral-800 rounded-lg p-1">
+      <h2 className="text-md my-2">你的自定义小练习</h2>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -102,6 +103,9 @@ export const GameList = () => {
           ))}
         </SortableContext>
       </DndContext>
+      <span className="text-sm self-end mt-2 text-neutral-500 dark:text-neutral-400">
+        如何增加你的小练习?
+      </span>
     </div>
   );
 };

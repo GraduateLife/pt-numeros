@@ -1,5 +1,6 @@
 import { cn, toWeekDay } from "@/lib/utils";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { TodoIsland } from "./TodoIsland";
 
 interface BomDiaProps {
@@ -44,27 +45,27 @@ export const BomDia = ({ name, className }: BomDiaProps) => {
   return (
     <div
       className={cn(
-        "p-4 rounded-lg shadow-sm h-96 sm:h-full",
+        "p-4 rounded-lg shadow-sm h-[var(--panel-first-line-shrink-height)]",
         bgColor,
         className,
       )}
     >
-      <div className="flex flex-col justify-between items-start h-full">
-        <div className="space-y-4">
-          <h1 className={cn("text-2xl font-medium", timeColor)}>
-            {greeting}
-            {name ? `, ${name}` : ""}!
-          </h1>
-          <div className="flex items-baseline gap-2">
-            <span className={cn("text-6xl font-medium", timeColor)}>
-              {time}
-            </span>
-            <span className={cn("text-6xl font-medium", timeColor)}>
-              {dayOfWeek}
-            </span>
-          </div>
+      <div className="flex flex-col justify-between items-start h-full space-y-2">
+        <span className={cn("text-2xl font-medium", timeColor)}>
+          {greeting}
+          {name ? `, ${name}` : ""}.
+        </span>
+        <span className={cn("text-2xl font-medium", timeColor)}>
+          {`Hoje é ${format(now, "dd 'de' MMMM 'de' yyyy,", { locale: ptBR })}`}
+        </span>
+        <div className="flex items-baseline gap-2">
+          <span className={cn("text-6xl font-medium", timeColor)}>{time}</span>
+          <span className={cn("text-6xl font-medium", timeColor)}>
+            {dayOfWeek}
+          </span>
         </div>
-        <div className="flex-1 flex justify-center items-center">
+
+        <div className="w-full flex-1 z-50 flex items-center justify-center">
           <TodoIsland />
         </div>
       </div>

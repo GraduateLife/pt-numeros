@@ -27,9 +27,13 @@ export const Statistics = ({
   chartData,
 }: StatisticsPanelProps) => {
   return (
-    <div className={cn("flex flex-col p-2 ", className)}>
-      <div className="text-lg sm:text-xl font-medium flex items-center justify-between"></div>
-
+    <div className={cn("flex flex-col p-4 ", className)}>
+      <div className="mb-4 text-lg font-medium flex items-center justify-between">
+        <span>你的统计</span>
+        <span className="text-sm text-violet-500/80 hover:text-violet-500 cursor-pointer">
+          我们如何统计你做了什么?
+        </span>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Today's tasks */}
         <StaticCard title="今天你做了">
@@ -58,7 +62,9 @@ export const Statistics = ({
           </div>
         </StaticCard>
       </div>
-      <WeeklyReport chartData={chartData} />
+      <div className="flex-1">
+        <WeeklyReport chartData={chartData} />
+      </div>
     </div>
   );
 };
@@ -132,7 +138,7 @@ const WeeklyReport = ({
 
   return (
     <div>
-      <div className="h-48 mt-4">
+      <div className="h-56 mt-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={currentWeekData}>
             <XAxis

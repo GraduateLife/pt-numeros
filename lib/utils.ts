@@ -47,3 +47,10 @@ export const isThisWeek = (dateStr: string): boolean => {
   const date = new Date(dateStr);
   return isSameWeek(date, new Date());
 };
+
+export enum Gender {
+  Masculino = "nome masculino",
+  Feminino = "nome feminino",
+  Both = "nome masculino e feminino",
+  TwoGender = "nome de dois géneros",
+}

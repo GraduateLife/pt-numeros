@@ -23,6 +23,7 @@ from definition import scrape_priberam_dictionary
 from phrases import scrape_priberam_phrases
 from card_definition import scrape_card_definitions
 from forma import scrape_word_forms
+from has_word import check_word_exists
 
 app = FastAPI(title="Portuguese Verb Conjugation API")
 
@@ -67,6 +68,12 @@ class PhraseResponse(BaseModel):
 class FormaResponse(BaseModel):
     word: str
     forma: List[str] = []
+    lemma: str = ""
+    error: Optional[str] = None
+
+class ExistsResponse(BaseModel):
+    word: str
+    exists: bool
     error: Optional[str] = None
 
 # Add a simple rate limiter
@@ -264,7 +271,7 @@ async def get_phrases(word: str):
 @app.get("/forma/{word}", response_model=FormaResponse)
 async def get_word_forms(word: str):
     """
-    Get alternative forms for a Portuguese word
+    Get alternative forms and lemmas for a Portuguese word
     """
     try:
         loop = asyncio.get_event_loop()
@@ -278,9 +285,28 @@ async def get_word_forms(word: str):
             return {
                 "word": word,
                 "forma": [],
+                "lemma": "",
                 "error": "Could not find this word form"
             }
             
+        return result
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/exists/{word}", response_model=ExistsResponse)
+async def check_exists(word: str):
+    """
+    Check if a word exists in the Priberam dictionary
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        await rate_limiter.acquire()
+        result = await loop.run_in_executor(
+            None, 
+            partial(cache_scraping_result, word, check_word_exists)
+        )
+        
         return result
             
     except Exception as e:

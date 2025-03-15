@@ -55,16 +55,35 @@ def scrape_word_forms(word: str) -> Dict[str, List[str]]:
                 if form_text and form_text not in forms:
                     forms.append(form_text)
         
+        # Extract lemmas from forms (last word of each form)
+        lemmas = []
+        for form in forms:
+            # Skip "interjeição" entries for lemma extraction
+            if "interjeição" in form.lower():
+                continue
+            words = form.split()
+            if words:  # ensure the form is not empty
+                lemmas.append(words[-1])  # take the last word
+        
+        # Remove duplicates while preserving order
+        unique_lemmas = list(dict.fromkeys(lemmas))
+        
+        # Get the first valid lemma or use the original word
+        final_lemma = unique_lemmas[0] if unique_lemmas else word
+        
+
         return {
-            "word": word,
-            "forma": forms,
-            "error": None
-        }
+                "word": word,
+                "forma": forms if forms else [f"lemma of {word}"],  # If forms is empty, use the word itself
+                "lemma": final_lemma,  # Single string instead of list
+                "error": None
+            }
         
     except Exception as e:
         return {
             "word": word,
             "forma": [],
+            "lemma": "",  # Empty string for error case
             "error": str(e)
         }
 

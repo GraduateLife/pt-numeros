@@ -21,8 +21,8 @@ export default function GameCard({ GameClass }: { GameClass: GameClass }) {
   }, []);
 
   return (
-    <div className="flex flex-col p-1">
-      <span className="text-sm text-center">{GameClass.gameDescription}</span>
+    <div className="flex flex-col p-2">
+      <span className="text-sm">{GameClass.gameDescription}</span>
       <div className="flex items-center justify-between p-1 ">
         <GameWaitingToStartScreen
           allowedGameModes={GameClass.allowedGameModes}

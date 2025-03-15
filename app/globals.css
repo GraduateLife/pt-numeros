@@ -118,9 +118,9 @@
   --di-background: #000000;
   --di-text: #ffffff;
   --di-accent: #0070f3;
-  --di-collapsed-width: 500px;
+  --di-collapsed-width: 300px;
   --di-collapsed-height: 40px;
-  --di-expanded-width: 500px;
+  --di-expanded-width: 150%;
   --di-border-radius: 9999px;
   --di-expanded-radius: 24px;
 }
@@ -162,4 +162,8 @@
 .dynamic-island-todo ul::-webkit-scrollbar-thumb {
   background-color: #333;
   border-radius: 3px;
+}
+
+:root {
+  --panel-first-line-shrink-height: 40vh;
 }
