@@ -2,12 +2,7 @@ import { historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
 import { settingsStorage } from "@/app/storage/settings";
 import { useQuery } from "@tanstack/react-query";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { GameMode } from "./constants";
 import { GameClass } from "./number-game";
@@ -27,9 +22,12 @@ export const useGame = ({
   instantCheckMode: boolean;
   instantTriggerInputLength: number;
 }) => {
-  const { mode: gameMode } = useParams<{ mode: GameMode }>();
-  const pathname = usePathname();
-  const gameName = pathname.split("/")[1];
+  const { gameSlug, mode: gameMode } = useParams<{
+    gameSlug: string;
+    mode: GameMode;
+  }>();
+  //   const pathname = usePathname();
+  //   const gameName = pathname.split("/")[1];
   const searchParams = useSearchParams();
   const round = searchParams.get("round");
   const router = useRouter();
@@ -65,12 +63,12 @@ export const useGame = ({
   });
 
   const navigateToEndPage = useCallback(() => {
-    router.replace(`/${gameName}/${gameMode}/end`);
-  }, [router, gameMode, gameName]);
+    router.replace(`/${gameSlug}/${gameMode}/end`);
+  }, [router, gameMode, gameSlug]);
 
   const navigateToNextRound = useCallback(() => {
-    router.replace(`/${gameName}/${gameMode}?round=${Number(round) + 1}`);
-  }, [router, gameMode, round, gameName]);
+    router.replace(`/${gameSlug}/${gameMode}?round=${Number(round) + 1}`);
+  }, [router, gameMode, round, gameSlug]);
 
   const handleTimeout = () => {
     if (gameMode === GameMode.TillCrash) {
@@ -111,13 +109,8 @@ export const useGame = ({
             navigateToNextRound();
             refetch();
           } else {
-            restLifeStorage.reduceLife(
-              GameClass.livesKey,
-              GameClass.settingKey,
-            );
-            if (
-              restLifeStorage.isDead(GameClass.livesKey, GameClass.settingKey)
-            ) {
+            restLifeStorage.reduceLife(GameClass.livesKey, GameClass);
+            if (restLifeStorage.isDead(GameClass.livesKey, GameClass)) {
               navigateToEndPage();
               restLifeStorage.clearLives(GameClass.livesKey);
             } else {

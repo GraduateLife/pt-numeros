@@ -115,7 +115,7 @@ export default function GameSettingsDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="mr-4">
+        <Button variant="outline" size="icon">
           <Settings />
         </Button>
       </DialogTrigger>

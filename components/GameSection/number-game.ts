@@ -34,6 +34,7 @@ export class LetsPlayNumberGame {
     GameMode.TillCrash,
     GameMode.Timed,
   ];
+  static gameDescription = "听一下数字";
   static gameSlug = "number-game";
   static settingKey = STORAGE_KEY;
   static livesKey = LIVES_KEY;

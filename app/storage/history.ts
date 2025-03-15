@@ -1,5 +1,5 @@
 // ... existing code ...
-import { GameMode } from "@/components/NumberGame/constants";
+import { GameMode } from "@/components/GameSection/constants";
 
 const HISTORY_KEY = "number-game-history";
 

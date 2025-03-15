@@ -1,7 +1,7 @@
 "use client";
 
 import { settingsStorage } from "@/app/storage/settings";
-import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
+import { LetsPlayNumberGame } from "@/components/GameSection/number-game";
 import { speak } from "@/lib/speak";
 import { Hand, Volume2 } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ import { Switch } from "../ui/switch";
 import { GameMode } from "./constants";
 import { useGame } from "./useGame";
 
-export default function GamePanel() {
+export default function GamePlayingScreen() {
   const settings = settingsStorage.getSettings(
     LetsPlayNumberGame.settingKey,
     LetsPlayNumberGame.defaultSettings,
@@ -30,7 +30,7 @@ export default function GamePanel() {
     const normalizedValue = value.replace(/^0+/, "") || "0";
     const res = Number(normalizedValue);
     if (isNaN(res)) {
-      toast.error("这不是一个数字!");
+      toast.error("这不是一个数字! 本题作答已作废!");
       return "不允许的输入";
     }
     return normalizedValue;

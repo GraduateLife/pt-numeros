@@ -1,4 +1,5 @@
-import { GameMode } from "@/components/NumberGame/constants";
+import { GameMode } from "@/components/GameSection/constants";
+import { GameClass } from "@/components/GameSection/number-game";
 import { settingsStorage } from "./settings";
 
 // const LIVES_KEY = "number-game-lives";
@@ -8,13 +9,15 @@ export interface LivesState {
 }
 
 export const restLifeStorage = {
-  getRestLife: (livesKey: string, settingKey: string): LivesState | null => {
+  getRestLife: (livesKey: string, GameClass: GameClass): LivesState | null => {
     if (typeof window === "undefined") return null;
 
     const stored = localStorage.getItem(livesKey);
     if (!stored) {
-      const allLives =
-        settingsStorage.getSettings(settingKey)[GameMode.TillCrash].lives;
+      const allLives = settingsStorage.getSettings(
+        GameClass.settingKey,
+        GameClass.defaultSettings,
+      )[GameMode.TillCrash].lives;
       return { remainingLives: allLives };
     }
 
@@ -34,12 +37,12 @@ export const restLifeStorage = {
       }),
     );
   },
-  isDead: (livesKey: string, settingKey: string): boolean => {
-    const lives = restLifeStorage.getRestLife(livesKey, settingKey);
+  isDead: (livesKey: string, GameClass: GameClass): boolean => {
+    const lives = restLifeStorage.getRestLife(livesKey, GameClass);
     return lives?.remainingLives === 0;
   },
-  reduceLife: (livesKey: string, settingKey: string): void => {
-    const lives = restLifeStorage.getRestLife(livesKey, settingKey);
+  reduceLife: (livesKey: string, GameClass: GameClass): void => {
+    const lives = restLifeStorage.getRestLife(livesKey, GameClass);
     if (lives) {
       lives.remainingLives--;
       restLifeStorage.saveLives(lives.remainingLives, livesKey);

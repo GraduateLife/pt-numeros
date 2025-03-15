@@ -33,8 +33,8 @@ export default function GameWaitingToStartScreen({
     router.push(buildGameUrl(gameName, mode));
   };
   return (
-    <div className="space-y-4 mt-4">
-      <div className="flex flex-col gap-2">
+    <div className="space-y-4">
+      <div className="flex gap-2">
         {allowedGameModes.map((mode) => (
           <GameModeButton
             key={mode}

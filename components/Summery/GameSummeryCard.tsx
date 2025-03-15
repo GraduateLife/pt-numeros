@@ -1,4 +1,4 @@
-import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
+import { LetsPlayNumberGame } from "@/components/GameSection/number-game";
 import { speak } from "@/lib/speak";
 import { cn } from "@/lib/utils";
 import { Volume2 } from "lucide-react";

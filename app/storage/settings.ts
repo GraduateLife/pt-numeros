@@ -1,13 +1,11 @@
-import { GameSettings } from "@/components/NumberGame/GameSettingDialog";
+import { GameSettings } from "@/components/GameSection/GameSettingDialog";
 
 export const settingsStorage = {
-  getSettings: (key: string, defaultSettings?: GameSettings): GameSettings => {
-    if (typeof window === "undefined" && defaultSettings)
-      return defaultSettings;
+  getSettings: (key: string, defaultSettings: GameSettings): GameSettings => {
+    if (typeof window === "undefined") return defaultSettings;
 
     const stored = localStorage.getItem(key);
-    if (!stored && defaultSettings) return defaultSettings;
-    if (!stored) throw new Error("No settings found");
+    if (!stored) return defaultSettings;
 
     try {
       return JSON.parse(stored);

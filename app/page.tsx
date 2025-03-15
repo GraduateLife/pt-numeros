@@ -1,51 +1,76 @@
 "use client";
-import GameSettingsDialog from "@/components/NumberGame/GameSettingDialog";
-import GameWaitingToStartScreen from "@/components/NumberGame/GameWaitingToStartScreen";
-import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import { historyStorage } from "./storage/history";
-import { settingsStorage } from "./storage/settings";
+import { AppLogo } from "@/components/App/AppLogo";
+import { Panel } from "@/components/Dashboard/Panel";
 
-export default function NumberGame() {
-  const [settings, setSettings] = useState(
-    settingsStorage.getSettings(
-      LetsPlayNumberGame.settingKey,
-      LetsPlayNumberGame.defaultSettings,
+import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+import {
+  IconArrowLeft,
+  IconBrandTabler,
+  IconSettings,
+  IconUserBolt,
+} from "@tabler/icons-react";
+import { useState } from "react";
+
+const links = [
+  {
+    label: "主页",
+    href: "#",
+    icon: (
+      <IconBrandTabler className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
     ),
-  );
-  useEffect(() => {
-    historyStorage.clearHistory();
-  }, []);
+  },
+  {
+    label: "我的",
+    href: "#",
+    icon: (
+      <IconUserBolt className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
+    ),
+  },
+  {
+    label: "设置",
+    href: "#",
+    icon: (
+      <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
+    ),
+  },
+];
 
+export default function Page() {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4">
-      <Card className="max-w-md mx-auto relative p-6 pt-0">
-        <CardHeader>
-          <CardTitle className="text-center">葡萄牙语数字专项练习</CardTitle>
-        </CardHeader>
-        <div className="absolute top-2 right-2">
-          <GameSettingsDialog
-            settings={settings}
-            onSettingsChange={(newSettings) => {
-              setSettings(newSettings);
-              settingsStorage.saveSettings(
-                LetsPlayNumberGame.settingKey,
-                newSettings,
-              );
-            }}
-            onSettingsReset={() => {
-              setSettings(LetsPlayNumberGame.defaultSettings);
-              settingsStorage.clearSettings(LetsPlayNumberGame.settingKey);
-            }}
-          />
-        </div>
-
-        <GameWaitingToStartScreen
-          allowedGameModes={LetsPlayNumberGame.allowedGameModes}
-          gameName={LetsPlayNumberGame.gameSlug}
-        />
-      </Card>
+    <div
+      className={cn(
+        "flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 select-none",
+        "min-h-screen overflow-y-auto",
+      )}
+    >
+      <Sidebar open={open} setOpen={setOpen} animate={true}>
+        <SidebarBody className="justify-between gap-10">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            <>
+              <AppLogo />
+            </>
+            <div className="mt-8 flex flex-col gap-2">
+              {links.map((link, idx) => (
+                <SidebarLink key={idx} link={link} />
+              ))}
+            </div>
+          </div>
+          <div>
+            <SidebarLink
+              link={{
+                label: "Logout",
+                href: "#",
+                icon: (
+                  <IconArrowLeft className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
+                ),
+              }}
+            />
+          </div>
+        </SidebarBody>
+      </Sidebar>
+      <Panel />
     </div>
   );
 }

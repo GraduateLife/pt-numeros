@@ -2,8 +2,8 @@
 import { GameHistory, historyStorage } from "@/app/storage/history";
 import { restLifeStorage } from "@/app/storage/restLife";
 import { DropArea } from "@/components/Common/DropArea";
-import { AccuracyIndicator } from "@/components/NumberGame/AccuracyIndicator";
-import { LetsPlayNumberGame } from "@/components/NumberGame/number-game";
+import { AccuracyIndicator } from "@/components/GameSection/AccuracyIndicator";
+import { LetsPlayNumberGame } from "@/components/GameSection/number-game";
 import { GameSummeryCard } from "@/components/Summery/GameSummeryCard";
 import { QuickSortDialog } from "@/components/Summery/QuickSortDialog";
 import { Button } from "@/components/ui/button";
