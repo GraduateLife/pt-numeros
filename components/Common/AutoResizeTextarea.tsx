@@ -25,7 +25,7 @@ interface AutoResizeTextareaProps
   onChange: (value: string) => void;
 }
 
-function AutoResizeTextarea({
+export function AutoResizeTextarea({
   className,
   value,
   onChange,

@@ -30,7 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Wrapper>
-          <main className="min-h-screen w-full flex">{children}</main>
+          <main className="">{children}</main>
         </Wrapper>
         {/* <footer className="fixed bottom-0 left-0 right-0 text-center text-sm text-gray-500">
           <span className="font-bold mr-1">2025 Made by</span>

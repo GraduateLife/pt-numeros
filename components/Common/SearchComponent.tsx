@@ -1,3 +1,4 @@
+"use client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Search, TextSelect } from "lucide-react";
 import { ReactNode, useState } from "react";

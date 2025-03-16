@@ -161,10 +161,14 @@ export const MobileSidebar = ({
 export const SidebarLink = ({
   link,
   className,
+  isActive,
+  activeClassName,
   ...props
 }: {
   link: Links;
   className?: string;
+  isActive?: boolean;
+  activeClassName?: string;
   props?: LinkProps;
 }) => {
   const { open, animate } = useSidebar();
@@ -172,14 +176,15 @@ export const SidebarLink = ({
     <Link
       href={link.href}
       className={cn(
-        "flex items-center justify-start gap-2 group/sidebar p-2",
-        "hover:bg-violet-300 rounded-lg",
+        "flex items-center justify-start gap-2 group/sidebar p-1",
+        "hover:bg-violet-400 rounded-lg",
         "text-neutral-700 dark:text-neutral-200 hover:text-white [&_svg]:hover:text-white",
+        isActive && activeClassName,
         className,
       )}
       {...props}
     >
-      <span className="[&_svg]:text-neutral-700 dark:[&_svg]:text-neutral-200">
+      <span className="[&_svg]:text-neutral-700 dark:[&_svg]:text-neutral-200 [&_svg]:text-yellow-800">
         {link.icon}
       </span>
 

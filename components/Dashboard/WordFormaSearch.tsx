@@ -48,7 +48,7 @@ function WordResultCard({ result }: { result: WordResult }) {
           </span>
         </div>
         <div className="space-y-1">
-          <ul className="list-inside list-disc space-y-1">
+          <ul className="list-inside list-disc ">
             {result.forma.map((form, index) => (
               <li key={index} className="text-sm text-muted-foreground">
                 {form.startsWith("lemma") ? `${result.lemma}的原型` : form}
