@@ -1,7 +1,6 @@
 "use server";
 
-import { promises as fs } from "fs";
-import path from "path";
+import { chatSettingsStore } from "@/lib/redis-client/chat-setting";
 
 // Define return type for clarity
 type ActionResponse = { success: boolean; message: string } | null;
@@ -12,34 +11,34 @@ export interface ChatSettings {
   isPersistent: boolean;
 }
 
-// Path to settings file
-const SETTINGS_FILE = path.join(process.cwd(), "data", "chat-settings.json");
-
-// Ensure the data directory exists
-async function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), "data");
-  try {
-    await fs.access(dataDir);
-  } catch (error) {
-    await fs.mkdir(dataDir, { recursive: true });
-  }
-}
+// Default settings
+const DEFAULT_SETTINGS: ChatSettings = {
+  model: "llama2",
+  isPersistent: false,
+};
 
 // Get the current settings
 export async function getChatSettings(): Promise<ChatSettings> {
   try {
-    await ensureDataDir();
-    const data = await fs.readFile(SETTINGS_FILE, "utf8");
-    const settings = JSON.parse(data);
-    console.log("Retrieved settings from file:", settings);
-    return settings;
-  } catch (error) {
-    // Default settings if file doesn't exist or can't be read
-    console.log("Could not read settings file, using defaults");
-    return {
-      model: "llama3.2",
-      isPersistent: false,
+    const settings = await chatSettingsStore.getAll();
+
+    // If no settings exist yet, return defaults
+    if (!Object.keys(settings).length) {
+      console.log("No settings found in Redis, using defaults");
+      return DEFAULT_SETTINGS;
+    }
+
+    // Convert from flat key-value to structured object
+    const chatSettings: ChatSettings = {
+      model: settings.model || DEFAULT_SETTINGS.model,
+      isPersistent: settings.isPersistent || DEFAULT_SETTINGS.isPersistent,
     };
+
+    console.log("Retrieved settings from Redis:", chatSettings);
+    return chatSettings;
+  } catch (error) {
+    console.error("Error retrieving settings:", error);
+    return DEFAULT_SETTINGS;
   }
 }
 
@@ -56,21 +55,16 @@ export async function updateChatSettings(
   const isPersistent = formData.get("isPersistent") === "true";
 
   console.log("Processed values:", { model, isPersistent });
-  console.log("isPersistent type:", typeof formData.get("isPersistent"));
-  console.log("isPersistent value:", formData.get("isPersistent"));
 
   try {
-    await ensureDataDir();
+    // Save settings to Redis
+    await chatSettingsStore.set("model", model);
+    await chatSettingsStore.set("isPersistent", isPersistent);
 
-    const settings = { model, isPersistent };
-
-    // Save settings to file
-    await fs.writeFile(SETTINGS_FILE, JSON.stringify(settings, null, 2));
-
-    console.log("Settings saved successfully:", settings);
-
-    // TODO: In production, you might want to save to a database instead
-    // await db.chatSettings.update({ model, isPersistent })
+    console.log("Settings saved successfully to Redis:", {
+      model,
+      isPersistent,
+    });
 
     return { success: true, message: "Settings updated successfully" };
   } catch (error) {

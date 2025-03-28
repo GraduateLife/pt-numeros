@@ -6,7 +6,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { GameMode } from "./constants";
 import { GameClass } from "./number-game";
-
 export const useGame = ({
   GameClass,
   validateInput,

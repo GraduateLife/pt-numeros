@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Install dependencies
+RUN pnpm install
+
+# Copy the rest of the application
+COPY . .
+
+# Expose the port that the Next.js app will run on
+EXPOSE 3000
+
+# Command to run the app in development mode
+CMD ["pnpm", "dev"] 

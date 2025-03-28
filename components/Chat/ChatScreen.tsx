@@ -63,8 +63,9 @@ export function ChatScreen({
 
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     body: {
-      custom: "please respond in portuguese",
+      lang_req: "please respond in portuguese",
     },
+    api: "/api/chat",
     initialMessages: initialMessages,
   });
 
@@ -132,9 +133,26 @@ export function ChatScreen({
           );
         })}
       </div>
-      <div className="flex justify-center items-center text-xs text-muted-foreground">
-        {status === "error" && "Error"}
-      </div>
+
+      {status === "error" && (
+        <div className="flex justify-center items-center text-xs text-red-500 bg-red-50 p-2 rounded-md">
+          <div className="flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>Failed to send message. Please try again.</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -145,15 +163,13 @@ export function ChatScreen({
         className,
       )}
       style={{
-        scrollbarWidth: "thin",
         scrollbarColor: "#aaa #fff",
       }}
-      {...props}
     >
-      <div className="flex-1 overflow-hidden px-1">
+      <div className="flex-1 overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-center h-full items-center">
+            <div className="flex gap-2">
               <div className="size-3 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
               <div className="size-2.5 bg-gray-200 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
               <div className="size-2 bg-gray-100 rounded-full animate-bounce"></div>
@@ -170,7 +186,7 @@ export function ChatScreen({
       </div>
       <form
         onSubmit={handleSubmit}
-        className="mt-6 border-input  bg-background focus-within:ring-ring/10 relative mx-6 mb-6 flex items-center rounded-[16px] border px-3 py-1.5 pr-8 text-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-0"
+        className="mt-6 border-input bg-background focus-within:ring-ring/10 relative mx-6 mb-6 flex items-center rounded-[16px] border px-3 py-1.5 pr-8 text-sm focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-0"
       >
         <textarea
           onKeyDown={handleKeyDown}

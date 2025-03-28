@@ -29,22 +29,12 @@ interface ModelOption {
   name: string;
 }
 
-// Default models to use if API fails
-const DEFAULT_MODELS = [
-  { id: "llama3.2", name: "Llama 3.2" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo" },
-  { id: "claude-3", name: "Claude 3" },
-];
-
-// Default model to use
-const DEFAULT_MODEL = "llama3.2";
-
 export const ChatSettingDisplay = () => {
   const [state, formAction] = useActionState(updateChatSettings, null);
   const prevStateRef = useRef<ActionResponse>(null);
   const [models, setModels] = useState<ModelOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+  const [selectedModel, setSelectedModel] = useState<string>("");
   const [isPersistent, setIsPersistent] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -52,17 +42,11 @@ export const ChatSettingDisplay = () => {
   // Load saved settings on component mount
   useEffect(() => {
     const loadSettings = async () => {
-      try {
-        const settings = await getChatSettings();
-        console.log("Loaded settings:", settings);
-        setSelectedModel(settings.model || DEFAULT_MODEL);
-        setIsPersistent(settings.isPersistent || false);
-        setIsInitialized(true);
-      } catch (error) {
-        console.error("Failed to load settings:", error);
-        toast("Failed to load saved settings. Using defaults.");
-        setIsInitialized(true);
-      }
+      const settings = await getChatSettings();
+      console.log("Loaded settings:", settings);
+      setSelectedModel(settings.model);
+      setIsPersistent(settings.isPersistent || false);
+      setIsInitialized(true);
     };
 
     loadSettings();
@@ -71,7 +55,6 @@ export const ChatSettingDisplay = () => {
   // Fetch available models
   useEffect(() => {
     const fetchModels = async () => {
-      console.log("Fetching models... Trigger value:", refreshTrigger);
       try {
         setIsLoading(true);
         const response = await fetch("/api/models");
@@ -90,21 +73,19 @@ export const ChatSettingDisplay = () => {
             setSelectedModel(data.models[0].id);
           }
         } else {
-          throw new Error("No models returned from API");
+          // Instead of throwing an error, set empty models array
+          console.log("No models returned from API");
+          setModels([]);
+          toast("No models available. Please click refresh to pull models.", {
+            duration: 5000,
+          });
         }
       } catch (error) {
         console.error("Failed to fetch models:", error);
-        toast("Failed to load models. Using defaults instead.");
-        // Set default models if API fails
-        setModels(DEFAULT_MODELS);
-
-        // Make sure selectedModel is valid in our default set if we're initialized
-        if (
-          isInitialized &&
-          !DEFAULT_MODELS.some((m: ModelOption) => m.id === selectedModel)
-        ) {
-          setSelectedModel(DEFAULT_MODEL);
-        }
+        toast("Failed to load models. Please try refreshing.", {
+          duration: 5000,
+        });
+        setModels([]);
       } finally {
         setIsLoading(false);
       }
@@ -208,6 +189,10 @@ export const ChatSettingDisplay = () => {
                 {isLoading ? (
                   <SelectItem value="loading" disabled>
                     Loading models...
+                  </SelectItem>
+                ) : models.length === 0 ? (
+                  <SelectItem value="no-models" disabled>
+                    No models available. Please click refresh.
                   </SelectItem>
                 ) : (
                   models.map((model) => (
