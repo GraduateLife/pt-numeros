@@ -1,9 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-
-import { Message, useChat } from "@ai-sdk/react";
-
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11,9 +7,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Message, useChat } from "@ai-sdk/react";
 import { ArrowUpIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChatBubble } from "./ChatBubble";
 
 const ChatHeader = () => {
   return (
@@ -34,57 +32,66 @@ const ChatHeader = () => {
   );
 };
 
-const ChatBubble = ({ message }: { message: Message }) => {
-  return (
-    <div
-      key={message.id}
-      className={cn(
-        "relative flex",
-        message.role === "user" ? "justify-end" : "justify-start",
-      )}
-    >
-      <div
-        data-role={message.role}
-        className={cn(
-          "max-w-[60%] px-3 py-2 text-sm break-words whitespace-pre-wrap rounded-lg",
-          message.role === "user"
-            ? "rounded-tr-none bg-blue-500 text-white"
-            : "rounded-tl-none bg-gray-100 text-black",
-        )}
-      >
-        {message.content}
-        <div className="flex w-full">
-          <span
-            className={cn(
-              "text-xs",
-              message.role === "user"
-                ? "ml-auto text-gray-300"
-                : "mr-auto text-gray-500",
-            )}
-          >
-            {message.createdAt ? format(message.createdAt, "HH:mm") : ""}
-          </span>
-        </div>
-      </div>
-      <div
-        className={cn(
-          "absolute bottom-0 size-1 bg-red-500",
-          message.role === "user" ? "right-0" : "left-0",
-        )}
-      ></div>
-    </div>
-  );
-};
-
 export function ChatScreen({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load chat history when component mounts
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/chat-history");
+        const data = await response.json();
+
+        if (data.messages && Array.isArray(data.messages)) {
+          console.log("Loaded chat history:", data.messages);
+          setInitialMessages(data.messages);
+        }
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadChatHistory();
+  }, []);
+
   const { messages, input, handleInputChange, handleSubmit, status } = useChat({
     body: {
       custom: "please respond in portuguese",
     },
+    initialMessages: initialMessages,
   });
+
+  // Save messages when they change
+  useEffect(() => {
+    const saveChatHistory = async () => {
+      // Don't save if we're still loading initial messages or if there are no messages
+      if (isLoading || messages.length === 0) {
+        return;
+      }
+
+      try {
+        console.log("Saving chat history:", messages);
+        await fetch("/api/chat-history", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ messages }),
+        });
+      } catch (error) {
+        console.error("Failed to save chat history:", error);
+      }
+    };
+
+    saveChatHistory();
+  }, [messages, isLoading]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -111,17 +118,15 @@ export function ChatScreen({
     <div className="flex flex-col h-full overflow-y-auto p-4 ">
       <div className="flex flex-col gap-4 py-4">
         {messages.map((message, idx) => {
-          if (idx === messages.length - 1 && status === "streaming") {
-            return (
-              <div key={message.id} className="flex items-center gap-2">
-                <div className="size-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                <div className="size-1.5 bg-gray-200 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div className="size-1 bg-gray-100 rounded-full animate-bounce"></div>
-              </div>
-            );
-          }
           return (
             <div key={message.id}>
+              {idx === messages.length - 1 && status === "streaming" && (
+                <div className="flex items-center gap-2 my-3">
+                  <div className="size-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="size-1.5 bg-gray-200 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="size-1 bg-gray-100 rounded-full animate-bounce"></div>
+                </div>
+              )}
               <ChatBubble message={message} />
             </div>
           );
@@ -146,7 +151,22 @@ export function ChatScreen({
       {...props}
     >
       <div className="flex-1 overflow-hidden px-1">
-        {messages.length ? messageList : <ChatHeader />}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <div className="flex items-center gap-2">
+              <div className="size-3 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="size-2.5 bg-gray-200 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="size-2 bg-gray-100 rounded-full animate-bounce"></div>
+              <span className="ml-2 text-gray-500">
+                Loading chat history...
+              </span>
+            </div>
+          </div>
+        ) : messages.length ? (
+          messageList
+        ) : (
+          <ChatHeader />
+        )}
       </div>
       <form
         onSubmit={handleSubmit}

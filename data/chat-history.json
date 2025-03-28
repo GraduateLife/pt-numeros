@@ -1,0 +1,27 @@
+[
+  {
+    "id": "84Gwe7qiblzTSZCQ",
+    "createdAt": "2025-03-28T12:10:55.956Z",
+    "role": "user",
+    "content": "hi",
+    "parts": [
+      {
+        "type": "text",
+        "text": "hi"
+      }
+    ]
+  },
+  {
+    "id": "msg-QKpYtqGWrJRevaKhQyUTtSTw",
+    "createdAt": "2025-03-28T12:10:57.163Z",
+    "role": "assistant",
+    "content": " Olá! Como posso ajudar?\n\nSe você tiver alguma dúvida ou precisar de ajuda, por favor, não hesite em perguntar. Estou aqui para te ajudar.",
+    "parts": [
+      {
+        "type": "text",
+        "text": " Olá! Como posso ajudar?\n\nSe você tiver alguma dúvida ou precisar de ajuda, por favor, não hesite em perguntar. Estou aqui para te ajudar."
+      }
+    ],
+    "revisionId": "PPAiR7FcV0SVTQu7"
+  }
+]
