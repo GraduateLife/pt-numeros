@@ -1,0 +1,60 @@
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: numeros-app
+    restart: unless-stopped
+    ports:
+      - "8888:3000" # Maps to the port specified in package.json
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000 # If you need to connect to a Python backend
+      - OLLAMA_HOST=http://ollama:11434 # Points to the Ollama service
+      - REDIS_URL=redis://redis:6379 # Redis connection URL
+    volumes:
+      - ./data:/app/data # For persistent storage (chat history, settings)
+    depends_on:
+      - ollama
+      - redis
+    networks:
+      - numeros-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: numeros-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434" # Ollama API port
+    volumes:
+      - ollama-data:/root/.ollama # Store models persistently
+    networks:
+      - numeros-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu] # For GPU support (remove if not using GPU)
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: numeros-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379" # Redis port
+      - "8001:8001" # RedisInsight (GUI) port
+    volumes:
+      - redis-data:/data # Persist Redis data
+    networks:
+      - numeros-network
+    command: --save 60 1 --loglevel warning
+
+networks:
+  numeros-network:
+    driver: bridge
+
+volumes:
+  ollama-data: # Persistent storage for Ollama models
+  redis-data: # Persistent storage for Redis data

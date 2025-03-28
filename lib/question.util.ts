@@ -1,5 +1,5 @@
 import { GameHistory } from "@/app/storage/history";
-import { GameMode } from "@/components/NumberGame/constants";
+import { GameMode } from "@/components/GameSection/constants";
 
 export type Question = {
   questionId: string;

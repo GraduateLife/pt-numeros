@@ -1,0 +1,75 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env.docker-dev
+    environment:
+      - NODE_ENV=development
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    depends_on:
+      - redis
+    networks:
+      - numeros-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: sh -c "cp .env.docker-dev .env && pnpm dev"
+
+  # ollama:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.ollama
+  #   volumes:
+  #     - ollama_data:/root/.ollama # 持久化存储模型
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - numeros-network
+
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+  #   ports:
+  #     - "11434:11434"
+  #   networks:
+  #     - numeros-network
+  # Uncomment these lines if you want to enable GPU support
+  # deploy:
+  #   resources:
+  #     reservations:
+  #       devices:
+  #         - driver: nvidia
+  #           count: all
+  #           capabilities: [gpu]
+
+  redis:
+    image: redis/redis-stack:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379" # Redis port
+      - "8001:8001" # RedisInsight (GUI) port
+    volumes:
+      - redis_data:/data
+    networks:
+      - numeros-network
+
+networks:
+  numeros-network:
+    driver: bridge
+
+volumes:
+  # ollama_data:
+  #   driver: local
+  redis_data:
+    driver: local
