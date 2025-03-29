@@ -6,30 +6,11 @@ import { Copy, Loader2, Volume1, Volume2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-// Maximum characters per chunk for text-to-speech
-const MAX_CHUNK_LENGTH = 1000;
-
-const splitTextIntoChunks = (text: string): string[] => {
-  const chunks: string[] = [];
-  let currentChunk = "";
-
-  // Split by sentences (roughly)
-  const sentences = text.split(/([.!?。！？]+\s+)/);
-
-  for (const sentence of sentences) {
-    if ((currentChunk + sentence).length <= MAX_CHUNK_LENGTH) {
-      currentChunk += sentence;
-    } else {
-      if (currentChunk) chunks.push(currentChunk.trim());
-      currentChunk = sentence;
-    }
-  }
-
-  if (currentChunk) chunks.push(currentChunk.trim());
-  return chunks;
-};
-
-export const ChatBubble = ({ message }: { message: Message }) => {
+export const ChatBubble = ({
+  message,
+}: {
+  message: Message & { model?: string };
+}) => {
   const { setSelectedText } = useSelectedText();
 
   const copyToClipboard = (text: string) => {
@@ -73,6 +54,9 @@ export const ChatBubble = ({ message }: { message: Message }) => {
               )}
             >
               {message.createdAt ? format(message.createdAt, "HH:mm") : ""}
+              {message.role === "assistant" && (
+                <span className="ml-1">{message.model}</span>
+              )}
             </span>
           </div>
         </div>
@@ -90,37 +74,6 @@ export const ChatBubble = ({ message }: { message: Message }) => {
         >
           <Copy className="h-4 w-4 text-gray-400" />
         </button>
-        {/* <button
-          onClick={handlePlay}
-          disabled={isPlaying}
-          className={cn(
-            "opacity-10 hover:opacity-100 transition-opacity",
-            isPlaying && "opacity-100",
-          )}
-          title={isPlaying ? "Stop" : "Play message"}
-        >
-          {isPlaying ? (
-            <>
-              {iconToggle ? (
-                <Volume2
-                  className={cn(
-                    "h-4 w-4 ",
-                    isPlaying ? "text-green-400" : "text-gray-400",
-                  )}
-                />
-              ) : (
-                <Volume1
-                  className={cn(
-                    "h-4 w-4 ",
-                    isPlaying ? "text-green-400" : "text-gray-400",
-                  )}
-                />
-              )}
-            </>
-          ) : (
-            <Volume2 className="h-4 w-4 text-gray-400" />
-          )}
-        </button> */}
         <PlayingButton text={message.content} />
       </div>
     </div>

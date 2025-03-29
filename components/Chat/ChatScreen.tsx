@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Message, useChat } from "@ai-sdk/react";
-import { ArrowUpIcon } from "lucide-react";
+import { ArrowUpIcon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ChatBubble } from "./ChatBubble";
 
 const ChatHeader = () => {
@@ -32,10 +33,7 @@ const ChatHeader = () => {
   );
 };
 
-export function ChatScreen({
-  className,
-  ...props
-}: React.ComponentProps<"form">) {
+export function ChatScreen({ className }: React.ComponentProps<"form">) {
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -115,19 +113,36 @@ export function ChatScreen({
     resizeTextarea();
   }, [input]);
 
+  useEffect(() => {
+    if (status === "submitted") {
+      toast.loading("waiting for response...");
+    } else if (status === "streaming") {
+      toast.dismiss();
+    }
+  }, [status]);
+
   const messageList = (
     <div className="flex flex-col h-full overflow-y-auto p-4 ">
       <div className="flex flex-col gap-4 py-4">
+        {/* {status === "submitted" && (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-muted-foreground">waiting for response...</p>
+          </div>
+        )} */}
         {messages.map((message, idx) => {
           return (
             <div key={message.id}>
-              {idx === messages.length - 1 && status === "streaming" && (
-                <div className="flex items-center gap-2 my-3">
-                  <div className="size-2 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                  <div className="size-1.5 bg-gray-200 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                  <div className="size-1 bg-gray-100 rounded-full animate-bounce"></div>
+              {/* {idx === messages.length - 1 && status === "streaming" && (
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="animate-bounce [animation-delay:-0.3s]">
+                    生
+                  </div>
+                  <div className="animate-bounce [animation-delay:-0.15s]">
+                    成
+                  </div>
+                  <div className="animate-bounce">中</div>
                 </div>
-              )}
+              )} */}
               <ChatBubble message={message} />
             </div>
           );
@@ -137,18 +152,7 @@ export function ChatScreen({
       {status === "error" && (
         <div className="flex justify-center items-center text-xs text-red-500 bg-red-50 p-2 rounded-md">
           <div className="flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <XIcon className="size-4" />
             <span>Failed to send message. Please try again.</span>
           </div>
         </div>

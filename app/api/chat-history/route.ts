@@ -6,6 +6,9 @@ import { NextResponse } from "next/server";
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
+  model?: string; // Add model field
+  id?: string; // Support for message IDs
+  createdAt?: Date; // Support for timestamps
 }
 
 // Get chat history
@@ -47,8 +50,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true });
     }
 
+    // Ensure all messages have model information
+    const messagesWithModel = messages.map((message: ChatMessage) => {
+      // Only add model if it's not already specified
+      if (!message.model && message.role === "assistant") {
+        return {
+          ...message,
+          model: settings.model,
+        };
+      }
+      return message;
+    });
+
     // Save messages to Redis
-    await chatHistoryStore.set(chatId, messages);
+    await chatHistoryStore.set(chatId, messagesWithModel);
 
     return NextResponse.json({ success: true });
   } catch (error) {

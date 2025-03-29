@@ -42,6 +42,7 @@ export async function getChatSettings(): Promise<ChatSettings> {
   }
 }
 
+// Make sure to use a type-safe server action
 export async function updateChatSettings(
   prevState: ActionResponse,
   formData: FormData,
@@ -51,7 +52,12 @@ export async function updateChatSettings(
     Object.fromEntries(formData.entries()),
   );
 
+  // Validate inputs
   const model = formData.get("model") as string;
+  if (!model) {
+    return { success: false, message: "Model is required" };
+  }
+
   const isPersistent = formData.get("isPersistent") === "true";
 
   console.log("Processed values:", { model, isPersistent });

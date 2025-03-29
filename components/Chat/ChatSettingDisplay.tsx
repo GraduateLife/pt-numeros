@@ -3,8 +3,13 @@
 import { getChatSettings, updateChatSettings } from "@/app/actions";
 import InformationTooltip from "@/components/Common/InfomationTooltip";
 import { RefreshCw } from "lucide-react";
-import { useActionState, useEffect, useRef, useState } from "react";
-import { useFormStatus } from "react-dom";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
@@ -30,7 +35,10 @@ interface ModelOption {
 }
 
 export const ChatSettingDisplay = () => {
-  const [state, formAction] = useActionState(updateChatSettings, null);
+  const [state, formAction] = useActionState<any, FormData>(
+    updateChatSettings.bind(null),
+    null,
+  );
   const prevStateRef = useRef<ActionResponse>(null);
   const [models, setModels] = useState<ModelOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,15 +46,29 @@ export const ChatSettingDisplay = () => {
   const [isPersistent, setIsPersistent] = useState<boolean>(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Load saved settings on component mount
   useEffect(() => {
     const loadSettings = async () => {
-      const settings = await getChatSettings();
-      console.log("Loaded settings:", settings);
-      setSelectedModel(settings.model);
-      setIsPersistent(settings.isPersistent || false);
-      setIsInitialized(true);
+      try {
+        setIsLoading(true);
+        const settings = await getChatSettings();
+        console.log("Loaded settings:", settings);
+        setSelectedModel(settings.model);
+        setIsPersistent(settings.isPersistent || false);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to load chat settings:", error);
+        toast("Failed to load settings. Using defaults.", {
+          duration: 5000,
+        });
+        // Set defaults if settings fail to load
+        setIsPersistent(false);
+        setIsInitialized(true);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadSettings();
@@ -54,23 +76,38 @@ export const ChatSettingDisplay = () => {
 
   // Fetch available models
   useEffect(() => {
+    // Only fetch models after we've loaded settings
+    if (!isInitialized) return;
+
     const fetchModels = async () => {
       try {
         setIsLoading(true);
         const response = await fetch("/api/models");
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch models: ${response.statusText}`);
+        }
+
         const data = await response.json();
 
         if (data.models && data.models.length > 0) {
           console.log("Models fetched successfully:", data.models);
           setModels(data.models);
 
-          // Only update selected model if we don't already have a valid one and we're initialized
-          if (
-            isInitialized &&
-            (!selectedModel ||
-              !data.models.some((m: ModelOption) => m.id === selectedModel))
-          ) {
+          // If the currently selected model isn't in the list, update to the first available model
+          if (!data.models.some((m: ModelOption) => m.id === selectedModel)) {
+            console.log(
+              `Selected model ${selectedModel} not found in available models, updating to ${data.models[0].id}`,
+            );
             setSelectedModel(data.models[0].id);
+
+            // Auto-save the updated model
+            const formData = new FormData();
+            formData.set("model", data.models[0].id);
+            formData.set("isPersistent", isPersistent.toString());
+            startTransition(() => {
+              formAction(formData);
+            });
           }
         } else {
           // Instead of throwing an error, set empty models array
@@ -92,7 +129,7 @@ export const ChatSettingDisplay = () => {
     };
 
     fetchModels();
-  }, [refreshTrigger, isInitialized]);
+  }, [refreshTrigger, isInitialized, selectedModel, isPersistent, formAction]);
 
   // Function to manually trigger a refresh
   const handleRefresh = () => {
@@ -103,24 +140,25 @@ export const ChatSettingDisplay = () => {
   // Update selected model when it changes
   const handleModelChange = (value: string) => {
     setSelectedModel(value);
+    const formData = new FormData();
+    formData.set("model", value);
+    formData.set("isPersistent", isPersistent.toString());
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   // Handle persistent toggle change
   const handlePersistentChange = (checked: boolean) => {
     console.log("Switch toggled to:", checked);
     setIsPersistent(checked);
+    const formData = new FormData();
+    formData.set("model", selectedModel);
+    formData.set("isPersistent", checked.toString());
+    startTransition(() => {
+      formAction(formData);
+    });
   };
-
-  // Add a SubmitButton component to handle the isPending state
-  function SubmitButton() {
-    const { pending } = useFormStatus();
-
-    return (
-      <Button type="submit" disabled={pending || isLoading} className="w-full">
-        {pending ? "Saving..." : "Save Settings"}
-      </Button>
-    );
-  }
 
   // Use useEffect to show toast only when state changes
   useEffect(() => {
@@ -130,30 +168,12 @@ export const ChatSettingDisplay = () => {
     }
   }, [state]);
 
-  // Handle form submission with correct data
-  const handleFormAction = async (formData: FormData) => {
-    formData.set("model", selectedModel);
-    formData.set("isPersistent", isPersistent.toString());
-    console.log("Submitting form data:", {
-      model: formData.get("model"),
-      isPersistent: formData.get("isPersistent"),
-    });
-    return formAction(formData);
-  };
-
   return (
     <div className="flex flex-col justify-between p-4 h-[100vh]">
       <div className="space-y-6">
         <h2 className="text-lg font-semibold">Chat Settings</h2>
 
-        <form action={handleFormAction} className="space-y-6">
-          {/* Hidden field to ensure isPersistent is included in form data */}
-          <input
-            type="hidden"
-            name="isPersistent"
-            value={isPersistent.toString()}
-          />
-
+        <div className="space-y-6">
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label htmlFor="model">Chat Model</Label>
@@ -162,12 +182,12 @@ export const ChatSettingDisplay = () => {
                 size="icon"
                 variant="ghost"
                 onClick={handleRefresh}
-                disabled={isLoading}
+                disabled={isLoading || isPending}
                 className="h-8 w-8"
                 aria-label="Refresh models"
               >
                 <RefreshCw
-                  className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                  className={`h-4 w-4 ${isLoading || isPending ? "animate-spin" : ""}`}
                 />
                 <span className="sr-only">Refresh models</span>
               </Button>
@@ -176,7 +196,7 @@ export const ChatSettingDisplay = () => {
               name="model"
               value={selectedModel}
               onValueChange={handleModelChange}
-              disabled={isLoading}
+              disabled={isLoading || isPending}
             >
               <SelectTrigger>
                 <SelectValue
@@ -210,6 +230,7 @@ export const ChatSettingDisplay = () => {
               id="isPersistentSwitch"
               checked={isPersistent}
               onCheckedChange={handlePersistentChange}
+              disabled={isPending}
             />
             <div className="flex items-center">
               <Label htmlFor="isPersistentSwitch">Persistent Chat</Label>
@@ -220,18 +241,16 @@ export const ChatSettingDisplay = () => {
             </div>
           </div>
 
-          <div className="text-xs text-gray-500">
-            Current persistence setting: {isPersistent ? "Enabled" : "Disabled"}
-          </div>
+          {isPending && (
+            <div className="text-xs text-blue-500">Saving settings...</div>
+          )}
 
-          <SubmitButton />
-
-          {state && (
+          {/* {state && (
             <p className={state.success ? "text-green-500" : "text-red-500"}>
               {state.message}
             </p>
-          )}
-        </form>
+          )} */}
+        </div>
       </div>
 
       <div className="flex-end">

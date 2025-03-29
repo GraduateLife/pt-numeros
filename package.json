@@ -7,8 +7,7 @@
     "build": "next build",
     "serve": "next start",
     "lint": "next lint",
-    "format": "prettier --write .",
-    "work:dev": "pnpm run dev && cd python && python3 app.py"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.2",
